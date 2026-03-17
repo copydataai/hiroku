@@ -101,29 +101,62 @@ export default function NewInvoicePage() {
     }
   };
 
+  const inputStyle = {
+    background: "var(--surface)",
+    border: "1px solid var(--border-light)",
+    color: "var(--text-primary)",
+  };
+
+  const inputFocusStyle = "outline-none focus:ring-1 focus:ring-[#c8963e]";
+
   return (
-    <div className="space-y-6">
+    <div className="animate-fade-up space-y-6">
       <div className="flex items-center gap-4">
         <Link
           href="/invoices"
-          className="rounded-lg p-2 text-gray-400 hover:bg-gray-100"
+          className="rounded-xl p-2 transition-colors"
+          style={{ color: "var(--text-muted)" }}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.color = "var(--text-primary)")
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.color = "var(--text-muted)")
+          }
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">New Invoice</h1>
+        <h1
+          className="text-2xl tracking-tight"
+          style={{
+            fontFamily: "var(--font-display)",
+            color: "var(--text-primary)",
+          }}
+        >
+          New Invoice
+        </h1>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
           {/* Lead selection */}
-          <div className="rounded-xl bg-white p-6 shadow-sm">
-            <label className="mb-2 block text-sm font-medium text-gray-700">
+          <div
+            className="rounded-2xl p-6"
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border-light)",
+            }}
+          >
+            <label
+              className="mb-2 block text-sm font-medium"
+              style={{ color: "var(--text-secondary)" }}
+            >
               Bill To (Lead) *
             </label>
             <select
               value={leadId}
               onChange={(e) => setLeadId(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+              className={`w-full rounded-xl px-3 py-2 text-sm ${inputFocusStyle}`}
+              style={inputStyle}
             >
               <option value="">Select a lead...</option>
               {leads?.map((lead: any) => (
@@ -135,9 +168,18 @@ export default function NewInvoicePage() {
           </div>
 
           {/* Line items */}
-          <div className="rounded-xl bg-white p-6 shadow-sm">
+          <div
+            className="rounded-2xl p-6"
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border-light)",
+            }}
+          >
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2
+                className="text-lg font-semibold"
+                style={{ color: "var(--text-primary)" }}
+              >
                 Line Items
               </h2>
               <div className="flex gap-2">
@@ -150,7 +192,12 @@ export default function NewInvoicePage() {
                       if (item) addFromMenu(item);
                       e.target.value = "";
                     }}
-                    className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
+                    className="rounded-xl px-3 py-1.5 text-sm"
+                    style={{
+                      background: "var(--surface)",
+                      border: "1px solid var(--border-light)",
+                      color: "var(--text-secondary)",
+                    }}
                     defaultValue=""
                   >
                     <option value="" disabled>
@@ -165,7 +212,12 @@ export default function NewInvoicePage() {
                 )}
                 <button
                   onClick={addItem}
-                  className="flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+                  className="flex items-center gap-1 rounded-xl px-3 py-1.5 text-sm transition-colors"
+                  style={{
+                    background: "var(--surface)",
+                    border: "1px solid var(--border-light)",
+                    color: "var(--text-secondary)",
+                  }}
                 >
                   <Plus className="h-4 w-4" /> Custom Item
                 </button>
@@ -174,18 +226,47 @@ export default function NewInvoicePage() {
 
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b text-left text-gray-600">
-                  <th className="pb-2 font-medium">Item</th>
-                  <th className="pb-2 font-medium w-20">Qty</th>
-                  <th className="pb-2 font-medium w-28">Unit Price</th>
-                  <th className="pb-2 font-medium w-28 text-right">Total</th>
+                <tr
+                  style={{
+                    borderBottom: "1px solid var(--border-light)",
+                  }}
+                >
+                  <th
+                    className="pb-2 text-left text-xs font-medium uppercase tracking-wider"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    Item
+                  </th>
+                  <th
+                    className="pb-2 text-left text-xs font-medium uppercase tracking-wider w-20"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    Qty
+                  </th>
+                  <th
+                    className="pb-2 text-left text-xs font-medium uppercase tracking-wider w-28"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    Unit Price
+                  </th>
+                  <th
+                    className="pb-2 text-right text-xs font-medium uppercase tracking-wider w-28"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    Total
+                  </th>
                   <th className="pb-2 w-10" />
                 </tr>
               </thead>
               <tbody>
                 {items.map((item, i) => (
-                  <tr key={i} className="border-b">
-                    <td className="py-2 pr-2">
+                  <tr
+                    key={i}
+                    style={{
+                      borderBottom: "1px solid var(--border-light)",
+                    }}
+                  >
+                    <td className="py-2.5 pr-2">
                       <input
                         type="text"
                         value={item.name}
@@ -193,10 +274,11 @@ export default function NewInvoicePage() {
                           updateItem(i, { name: e.target.value })
                         }
                         placeholder="Item name"
-                        className="w-full rounded border px-2 py-1 text-sm outline-none"
+                        className={`w-full rounded-lg px-2.5 py-1.5 text-sm ${inputFocusStyle}`}
+                        style={inputStyle}
                       />
                     </td>
-                    <td className="py-2 pr-2">
+                    <td className="py-2.5 pr-2">
                       <input
                         type="number"
                         value={item.quantity}
@@ -206,10 +288,11 @@ export default function NewInvoicePage() {
                           })
                         }
                         min={1}
-                        className="w-full rounded border px-2 py-1 text-sm outline-none"
+                        className={`w-full rounded-lg px-2.5 py-1.5 text-sm ${inputFocusStyle}`}
+                        style={inputStyle}
                       />
                     </td>
-                    <td className="py-2 pr-2">
+                    <td className="py-2.5 pr-2">
                       <input
                         type="number"
                         value={item.unitPrice}
@@ -219,16 +302,27 @@ export default function NewInvoicePage() {
                           })
                         }
                         step="0.01"
-                        className="w-full rounded border px-2 py-1 text-sm outline-none"
+                        className={`w-full rounded-lg px-2.5 py-1.5 text-sm ${inputFocusStyle}`}
+                        style={inputStyle}
                       />
                     </td>
-                    <td className="py-2 text-right font-medium">
+                    <td
+                      className="py-2.5 text-right font-medium"
+                      style={{ color: "var(--text-primary)" }}
+                    >
                       ${(item.quantity * item.unitPrice).toFixed(2)}
                     </td>
-                    <td className="py-2 pl-2">
+                    <td className="py-2.5 pl-2">
                       <button
                         onClick={() => removeItem(i)}
-                        className="text-gray-400 hover:text-red-600"
+                        className="transition-colors"
+                        style={{ color: "var(--text-muted)" }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.color = "var(--danger)")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.color = "var(--text-muted)")
+                        }
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -240,8 +334,17 @@ export default function NewInvoicePage() {
           </div>
 
           {/* Notes */}
-          <div className="rounded-xl bg-white p-6 shadow-sm">
-            <label className="mb-2 block text-sm font-medium text-gray-700">
+          <div
+            className="rounded-2xl p-6"
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border-light)",
+            }}
+          >
+            <label
+              className="mb-2 block text-sm font-medium"
+              style={{ color: "var(--text-secondary)" }}
+            >
               Notes
             </label>
             <textarea
@@ -249,21 +352,34 @@ export default function NewInvoicePage() {
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
               placeholder="Any additional notes..."
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+              className={`w-full rounded-xl px-3 py-2 text-sm ${inputFocusStyle}`}
+              style={inputStyle}
             />
           </div>
         </div>
 
         {/* Summary sidebar */}
         <div className="space-y-6">
-          <div className="rounded-xl bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">
+          <div
+            className="rounded-2xl p-6"
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border-light)",
+            }}
+          >
+            <h2
+              className="mb-4 text-lg font-semibold"
+              style={{ color: "var(--text-primary)" }}
+            >
               Summary
             </h2>
 
             <div className="space-y-3">
               <div>
-                <label className="mb-1 block text-sm text-gray-600">
+                <label
+                  className="mb-1 block text-sm"
+                  style={{ color: "var(--text-secondary)" }}
+                >
                   Tax Rate (%)
                 </label>
                 <input
@@ -271,11 +387,15 @@ export default function NewInvoicePage() {
                   value={taxRate}
                   onChange={(e) => setTaxRate(e.target.value)}
                   step="0.01"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none"
+                  className={`w-full rounded-xl px-3 py-2 text-sm ${inputFocusStyle}`}
+                  style={inputStyle}
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm text-gray-600">
+                <label
+                  className="mb-1 block text-sm"
+                  style={{ color: "var(--text-secondary)" }}
+                >
                   Discount ($)
                 </label>
                 <input
@@ -283,30 +403,68 @@ export default function NewInvoicePage() {
                   value={discount}
                   onChange={(e) => setDiscount(e.target.value)}
                   step="0.01"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none"
+                  className={`w-full rounded-xl px-3 py-2 text-sm ${inputFocusStyle}`}
+                  style={inputStyle}
                 />
               </div>
 
-              <div className="border-t pt-3 space-y-2 text-sm">
+              <div
+                className="pt-3 space-y-2 text-sm"
+                style={{ borderTop: "1px solid var(--border-light)" }}
+              >
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Subtotal</span>
-                  <span className="font-medium">${subtotal.toFixed(2)}</span>
+                  <span style={{ color: "var(--text-secondary)" }}>
+                    Subtotal
+                  </span>
+                  <span
+                    className="font-medium"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    ${subtotal.toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Tax</span>
-                  <span className="font-medium">${taxAmount.toFixed(2)}</span>
+                  <span style={{ color: "var(--text-secondary)" }}>Tax</span>
+                  <span
+                    className="font-medium"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    ${taxAmount.toFixed(2)}
+                  </span>
                 </div>
                 {parseFloat(discount || "0") > 0 && (
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Discount</span>
-                    <span className="font-medium text-red-600">
+                    <span style={{ color: "var(--text-secondary)" }}>
+                      Discount
+                    </span>
+                    <span
+                      className="font-medium"
+                      style={{ color: "var(--danger)" }}
+                    >
                       -${parseFloat(discount || "0").toFixed(2)}
                     </span>
                   </div>
                 )}
-                <div className="flex justify-between border-t pt-2 text-lg font-bold">
-                  <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
+                <div
+                  className="flex justify-between pt-2 text-lg font-bold"
+                  style={{ borderTop: "1px solid var(--border-light)" }}
+                >
+                  <span
+                    style={{
+                      fontFamily: "var(--font-display)",
+                      color: "var(--text-primary)",
+                    }}
+                  >
+                    Total
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-display)",
+                      color: "var(--text-primary)",
+                    }}
+                  >
+                    ${total.toFixed(2)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -314,7 +472,12 @@ export default function NewInvoicePage() {
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className="mt-6 w-full rounded-lg bg-indigo-600 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+              className="mt-6 w-full rounded-xl py-2.5 text-sm font-medium transition-all hover:opacity-90 disabled:opacity-50"
+              style={{
+                background:
+                  "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)",
+                color: "#fff",
+              }}
             >
               {loading ? "Creating..." : "Create Invoice"}
             </button>

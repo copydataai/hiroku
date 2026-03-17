@@ -24,7 +24,10 @@ export default function InvoiceDetailPage() {
   if (!invoice || !restaurant) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
+        <div
+          className="h-8 w-8 animate-spin rounded-full border-4 border-t-transparent"
+          style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }}
+        />
       </div>
     );
   }
@@ -52,37 +55,61 @@ export default function InvoiceDetailPage() {
     alert("Docket created!");
   };
 
-  const statusColors: Record<string, string> = {
-    draft: "bg-gray-100 text-gray-700",
-    sent: "bg-blue-100 text-blue-700",
-    paid: "bg-emerald-100 text-emerald-700",
-    overdue: "bg-red-100 text-red-700",
-    cancelled: "bg-gray-100 text-gray-500",
-    refunded: "bg-amber-100 text-amber-700",
+  const getStatusStyle = (status: string) => {
+    switch (status) {
+      case "paid":
+        return { background: "var(--success-light)", color: "var(--success)" };
+      case "sent":
+        return { background: "rgba(99,102,241,0.08)", color: "#6366f1" };
+      case "overdue":
+        return { background: "var(--danger-light)", color: "var(--danger)" };
+      case "cancelled":
+        return { background: "var(--border-light)", color: "var(--text-muted)" };
+      case "refunded":
+        return { background: "var(--warning-light)", color: "var(--warning)" };
+      case "draft":
+      default:
+        return { background: "var(--warning-light)", color: "var(--warning)" };
+    }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="animate-fade-up space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link
             href="/invoices"
-            className="rounded-lg p-2 text-gray-400 hover:bg-gray-100"
+            className="rounded-xl p-2 transition-colors"
+            style={{ color: "var(--text-muted)" }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.color = "var(--text-primary)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.color = "var(--text-muted)")
+            }
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1
+              className="text-2xl tracking-tight"
+              style={{
+                fontFamily: "var(--font-display)",
+                color: "var(--text-primary)",
+              }}
+            >
               {invoice.invoiceNumber}
             </h1>
-            <p className="text-sm text-gray-500">
+            <p
+              className="text-sm"
+              style={{ color: "var(--text-muted)" }}
+            >
               To: {invoice.leadName}
             </p>
           </div>
           <span
-            className={`rounded-full px-3 py-1 text-sm font-medium ${
-              statusColors[invoice.status] ?? "bg-gray-100"
-            }`}
+            className="rounded-full px-3 py-1 text-sm font-medium capitalize"
+            style={getStatusStyle(invoice.status)}
           >
             {invoice.status}
           </span>
@@ -91,7 +118,12 @@ export default function InvoiceDetailPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={handlePrintDocket}
-            className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm transition-colors"
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border-light)",
+              color: "var(--text-secondary)",
+            }}
           >
             <Printer className="h-4 w-4" /> Print Docket
           </button>
@@ -99,7 +131,12 @@ export default function InvoiceDetailPage() {
           {invoice.status === "draft" && (
             <button
               onClick={() => handleStatusChange("sent")}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              className="rounded-xl px-4 py-2 text-sm font-medium transition-colors"
+              style={{
+                background: "rgba(99,102,241,0.08)",
+                color: "#6366f1",
+                border: "1px solid rgba(99,102,241,0.2)",
+              }}
             >
               Mark as Sent
             </button>
@@ -112,7 +149,12 @@ export default function InvoiceDetailPage() {
                     handleStatusChange("paid", e.target.value);
                   }
                 }}
-                className="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700"
+                className="rounded-xl px-3 py-2 text-sm"
+                style={{
+                  background: "var(--success-light)",
+                  border: "1px solid var(--success)",
+                  color: "var(--success)",
+                }}
                 defaultValue=""
               >
                 <option value="" disabled>
@@ -128,7 +170,12 @@ export default function InvoiceDetailPage() {
           {invoice.status !== "cancelled" && invoice.status !== "paid" && (
             <button
               onClick={() => handleStatusChange("cancelled")}
-              className="rounded-lg border border-red-300 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+              className="rounded-xl px-4 py-2 text-sm transition-colors"
+              style={{
+                background: "var(--surface)",
+                border: "1px solid var(--danger)",
+                color: "var(--danger)",
+              }}
             >
               Cancel
             </button>
@@ -136,31 +183,53 @@ export default function InvoiceDetailPage() {
         </div>
       </div>
 
-      {/* Invoice content */}
-      <div className="rounded-xl bg-white p-8 shadow-sm">
-        <div className="mb-8 flex justify-between">
+      {/* Invoice content - premium document feel */}
+      <div
+        className="rounded-2xl p-10"
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border-light)",
+        }}
+      >
+        <div className="mb-10 flex justify-between">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2
+              className="text-xl tracking-tight"
+              style={{
+                fontFamily: "var(--font-display)",
+                color: "var(--text-primary)",
+              }}
+            >
               {restaurant.name}
             </h2>
             {restaurant.address && (
-              <p className="text-sm text-gray-500">{restaurant.address}</p>
+              <p
+                className="mt-1 text-sm"
+                style={{ color: "var(--text-muted)" }}
+              >
+                {restaurant.address}
+              </p>
             )}
             {restaurant.phone && (
-              <p className="text-sm text-gray-500">{restaurant.phone}</p>
+              <p
+                className="text-sm"
+                style={{ color: "var(--text-muted)" }}
+              >
+                {restaurant.phone}
+              </p>
             )}
           </div>
           <div className="text-right">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
               Date: {new Date(invoice._creationTime).toLocaleDateString()}
             </p>
             {invoice.dueAt && (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm" style={{ color: "var(--text-muted)" }}>
                 Due: {new Date(invoice.dueAt).toLocaleDateString()}
               </p>
             )}
             {invoice.paidAt && (
-              <p className="text-sm text-emerald-600">
+              <p className="text-sm" style={{ color: "var(--success)" }}>
                 Paid: {new Date(invoice.paidAt).toLocaleDateString()}
                 {invoice.paymentMethod && ` (${invoice.paymentMethod})`}
               </p>
@@ -169,28 +238,81 @@ export default function InvoiceDetailPage() {
         </div>
 
         {/* Line items table */}
-        <table className="mb-6 w-full text-sm">
+        <table className="mb-8 w-full text-sm">
           <thead>
-            <tr className="border-b text-left text-gray-600">
-              <th className="pb-2 font-medium">Item</th>
-              <th className="pb-2 font-medium">Description</th>
-              <th className="pb-2 font-medium text-right">Qty</th>
-              <th className="pb-2 font-medium text-right">Unit Price</th>
-              <th className="pb-2 font-medium text-right">Total</th>
+            <tr
+              style={{
+                borderBottom: "1px solid var(--border-light)",
+              }}
+            >
+              <th
+                className="pb-3 text-left text-xs font-medium uppercase tracking-wider"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Item
+              </th>
+              <th
+                className="pb-3 text-left text-xs font-medium uppercase tracking-wider"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Description
+              </th>
+              <th
+                className="pb-3 text-right text-xs font-medium uppercase tracking-wider"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Qty
+              </th>
+              <th
+                className="pb-3 text-right text-xs font-medium uppercase tracking-wider"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Unit Price
+              </th>
+              <th
+                className="pb-3 text-right text-xs font-medium uppercase tracking-wider"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Total
+              </th>
             </tr>
           </thead>
           <tbody>
             {items?.map((item: any) => (
-              <tr key={item._id} className="border-b">
-                <td className="py-3 font-medium text-gray-900">{item.name}</td>
-                <td className="py-3 text-gray-500">
+              <tr
+                key={item._id}
+                style={{
+                  borderBottom: "1px solid var(--border-light)",
+                }}
+              >
+                <td
+                  className="py-3.5 font-medium"
+                  style={{ color: "var(--text-primary)" }}
+                >
+                  {item.name}
+                </td>
+                <td
+                  className="py-3.5"
+                  style={{ color: "var(--text-muted)" }}
+                >
                   {item.description ?? "-"}
                 </td>
-                <td className="py-3 text-right">{item.quantity}</td>
-                <td className="py-3 text-right">
+                <td
+                  className="py-3.5 text-right"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  {item.quantity}
+                </td>
+                <td
+                  className="py-3.5 text-right"
+                  style={{ color: "var(--text-secondary)" }}
+                >
                   ${item.unitPrice.toFixed(2)}
                 </td>
-                <td className="py-3 text-right font-medium">
+                <td
+                  className="py-3.5 text-right font-medium"
+                  style={{ color: "var(--text-primary)" }}
+                >
                   ${item.totalPrice.toFixed(2)}
                 </td>
               </tr>
@@ -199,37 +321,69 @@ export default function InvoiceDetailPage() {
         </table>
 
         {/* Totals */}
-        <div className="ml-auto w-64 space-y-2 text-sm">
+        <div className="ml-auto w-72 space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-gray-600">Subtotal</span>
-            <span className="font-medium">${invoice.subtotal.toFixed(2)}</span>
+            <span style={{ color: "var(--text-secondary)" }}>Subtotal</span>
+            <span
+              className="font-medium"
+              style={{ color: "var(--text-primary)" }}
+            >
+              ${invoice.subtotal.toFixed(2)}
+            </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">
+            <span style={{ color: "var(--text-secondary)" }}>
               Tax ({invoice.taxRate}%)
             </span>
-            <span className="font-medium">
+            <span
+              className="font-medium"
+              style={{ color: "var(--text-primary)" }}
+            >
               ${invoice.taxAmount.toFixed(2)}
             </span>
           </div>
           {invoice.discountAmount > 0 && (
             <div className="flex justify-between">
-              <span className="text-gray-600">Discount</span>
-              <span className="font-medium text-red-600">
+              <span style={{ color: "var(--text-secondary)" }}>Discount</span>
+              <span
+                className="font-medium"
+                style={{ color: "var(--danger)" }}
+              >
                 -${invoice.discountAmount.toFixed(2)}
               </span>
             </div>
           )}
-          <div className="flex justify-between border-t pt-2 text-lg font-bold">
-            <span>Total</span>
-            <span>${invoice.total.toFixed(2)}</span>
+          <div
+            className="flex justify-between pt-3 text-xl font-bold"
+            style={{ borderTop: "2px solid var(--border-light)" }}
+          >
+            <span
+              style={{
+                fontFamily: "var(--font-display)",
+                color: "var(--text-primary)",
+              }}
+            >
+              Total
+            </span>
+            <span
+              style={{
+                fontFamily: "var(--font-display)",
+                color: "var(--accent)",
+              }}
+            >
+              ${invoice.total.toFixed(2)}
+            </span>
           </div>
         </div>
 
         {invoice.notes && (
-          <div className="mt-8 border-t pt-4">
-            <p className="text-sm text-gray-500">
-              <strong>Notes:</strong> {invoice.notes}
+          <div
+            className="mt-10 pt-5"
+            style={{ borderTop: "1px solid var(--border-light)" }}
+          >
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+              <strong style={{ color: "var(--text-secondary)" }}>Notes:</strong>{" "}
+              {invoice.notes}
             </p>
           </div>
         )}

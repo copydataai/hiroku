@@ -38,22 +38,53 @@ export default function BillingSettingsPage() {
     }
   };
 
+  const inputFocus = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
+    e.currentTarget.style.borderColor = "var(--accent)";
+    e.currentTarget.style.boxShadow = "0 0 0 2px rgba(200,150,62,0.1)";
+  };
+
+  const inputBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
+    e.currentTarget.style.borderColor = "var(--border-light)";
+    e.currentTarget.style.boxShadow = "none";
+  };
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Billing Settings</h1>
+    <div className="animate-fade-up space-y-6">
+      <div>
+        <h1
+          className="text-2xl tracking-tight"
+          style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)" }}
+        >
+          Billing Settings
+        </h1>
+        <p className="mt-1 text-sm" style={{ color: "var(--text-secondary)" }}>
+          Configure currency and tax defaults for invoicing.
+        </p>
+      </div>
 
       <form
         onSubmit={handleSave}
-        className="max-w-md space-y-4 rounded-xl bg-white p-6 shadow-sm"
+        className="max-w-md space-y-4 rounded-2xl p-6"
+        style={{ background: "var(--surface)", border: "1px solid var(--border-light)" }}
       >
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
+          <label
+            className="mb-1 block text-sm font-medium"
+            style={{ color: "var(--text-secondary)" }}
+          >
             Currency
           </label>
           <select
             value={currency}
             onChange={(e) => setCurrency(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            className="w-full rounded-xl px-3 py-2 text-sm outline-none"
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border-light)",
+              color: "var(--text-primary)",
+            }}
+            onFocus={inputFocus}
+            onBlur={inputBlur}
           >
             <option value="USD">USD ($)</option>
             <option value="EUR">EUR (&euro;)</option>
@@ -68,7 +99,10 @@ export default function BillingSettingsPage() {
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
+          <label
+            className="mb-1 block text-sm font-medium"
+            style={{ color: "var(--text-secondary)" }}
+          >
             Default Tax Rate (%)
           </label>
           <input
@@ -78,9 +112,16 @@ export default function BillingSettingsPage() {
             step="0.01"
             min="0"
             max="100"
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            className="w-full rounded-xl px-3 py-2 text-sm outline-none"
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border-light)",
+              color: "var(--text-primary)",
+            }}
+            onFocus={inputFocus}
+            onBlur={inputBlur}
           />
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
             Applied by default when creating new invoices.
           </p>
         </div>
@@ -89,12 +130,18 @@ export default function BillingSettingsPage() {
           <button
             type="submit"
             disabled={saving}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+            className="rounded-xl px-4 py-2 text-sm font-medium disabled:opacity-50"
+            style={{
+              background: "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)",
+              color: "#fff",
+            }}
           >
             {saving ? "Saving..." : "Save Settings"}
           </button>
           {saved && (
-            <span className="text-sm text-emerald-600">Saved!</span>
+            <span className="text-sm" style={{ color: "var(--success)" }}>
+              Saved!
+            </span>
           )}
         </div>
       </form>

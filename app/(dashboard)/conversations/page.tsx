@@ -20,51 +20,113 @@ export default function ConversationsPage() {
   if (!restaurant) return null;
 
   return (
-    <div className="flex h-[calc(100vh-7rem)] gap-4">
+    <div className="animate-fade-up flex h-[calc(100vh-7rem)] gap-4">
       {/* Conversation list */}
-      <div className="w-80 shrink-0 overflow-y-auto rounded-xl bg-white shadow-sm">
-        <div className="border-b p-4">
-          <h2 className="text-lg font-semibold text-gray-900">Conversations</h2>
+      <div
+        className="w-80 shrink-0 overflow-y-auto rounded-2xl"
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border-light)",
+        }}
+      >
+        <div
+          className="p-4"
+          style={{ borderBottom: "1px solid var(--border-light)" }}
+        >
+          <h2
+            className="text-lg tracking-tight"
+            style={{
+              fontFamily: "var(--font-display)",
+              color: "var(--text-primary)",
+            }}
+          >
+            Conversations
+          </h2>
         </div>
-        <div className="divide-y">
+        <div>
           {conversations === undefined ? (
-            <p className="py-8 text-center text-sm text-gray-400">
+            <p
+              className="py-8 text-center text-sm"
+              style={{ color: "var(--text-muted)" }}
+            >
               Loading...
             </p>
           ) : conversations.length === 0 ? (
-            <div className="flex flex-col items-center py-12 text-gray-400">
-              <MessageSquare className="mb-2 h-8 w-8" />
+            <div
+              className="flex flex-col items-center py-12"
+              style={{ color: "var(--text-muted)" }}
+            >
+              <MessageSquare className="mb-2 h-8 w-8" style={{ opacity: 0.4 }} />
               <p className="text-sm">No conversations yet</p>
             </div>
           ) : (
-            conversations.map((conv: any) => (
+            conversations.map((conv: any, index: number) => (
               <button
                 key={conv._id}
                 onClick={() => setSelectedId(conv._id)}
-                className={`w-full px-4 py-3 text-left transition-colors hover:bg-gray-50 ${
-                  selectedId === conv._id ? "bg-indigo-50" : ""
-                }`}
+                className="w-full px-4 py-3 text-left transition-colors"
+                style={{
+                  background:
+                    selectedId === conv._id
+                      ? "rgba(200,150,62,0.08)"
+                      : "transparent",
+                  borderBottom:
+                    index < conversations.length - 1
+                      ? "1px solid var(--border-light)"
+                      : undefined,
+                }}
+                onMouseEnter={(e) => {
+                  if (selectedId !== conv._id) {
+                    e.currentTarget.style.background = "var(--surface-warm)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (selectedId !== conv._id) {
+                    e.currentTarget.style.background = "transparent";
+                  }
+                }}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-gray-900">
+                  <span
+                    className="font-medium text-sm"
+                    style={{ color: "var(--text-primary)" }}
+                  >
                     {conv.leadName}
                   </span>
                   {conv.unreadCount > 0 && (
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-xs text-white">
+                    <span
+                      className="flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold text-white"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)",
+                      }}
+                    >
                       {conv.unreadCount}
                     </span>
                   )}
                 </div>
                 <div className="flex items-center justify-between">
-                  <p className="mt-1 truncate text-sm text-gray-500">
+                  <p
+                    className="mt-1 truncate text-sm"
+                    style={{ color: "var(--text-muted)" }}
+                  >
                     {conv.lastMessagePreview ?? "No messages"}
                   </p>
-                  <span className="ml-2 shrink-0 rounded-full bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500">
+                  <span
+                    className="ml-2 shrink-0 rounded-full px-1.5 py-0.5 text-xs font-medium"
+                    style={{
+                      background: "rgba(200,150,62,0.08)",
+                      color: "var(--accent)",
+                    }}
+                  >
                     {conv.channel}
                   </span>
                 </div>
                 {conv.lastMessageAt && (
-                  <p className="mt-1 text-xs text-gray-400">
+                  <p
+                    className="mt-1 text-xs"
+                    style={{ color: "var(--text-muted)" }}
+                  >
                     {new Date(conv.lastMessageAt).toLocaleString()}
                   </p>
                 )}
@@ -75,14 +137,26 @@ export default function ConversationsPage() {
       </div>
 
       {/* Message thread */}
-      <div className="flex flex-1 flex-col rounded-xl bg-white shadow-sm">
+      <div
+        className="flex flex-1 flex-col overflow-hidden rounded-2xl"
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border-light)",
+        }}
+      >
         {selectedId ? (
           <MessageThread conversationId={selectedId} />
         ) : (
-          <div className="flex flex-1 items-center justify-center text-gray-400">
+          <div
+            className="flex flex-1 items-center justify-center"
+            style={{ color: "var(--text-muted)" }}
+          >
             <div className="text-center">
-              <MessageSquare className="mx-auto mb-2 h-12 w-12" />
-              <p>Select a conversation to view messages</p>
+              <MessageSquare
+                className="mx-auto mb-2 h-12 w-12"
+                style={{ opacity: 0.4 }}
+              />
+              <p className="text-sm">Select a conversation to view messages</p>
             </div>
           </div>
         )}
@@ -119,9 +193,17 @@ function MessageThread({
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4">
         {messages === undefined ? (
-          <p className="py-8 text-center text-sm text-gray-400">Loading...</p>
+          <p
+            className="py-8 text-center text-sm"
+            style={{ color: "var(--text-muted)" }}
+          >
+            Loading...
+          </p>
         ) : messages.length === 0 ? (
-          <p className="py-8 text-center text-sm text-gray-400">
+          <p
+            className="py-8 text-center text-sm"
+            style={{ color: "var(--text-muted)" }}
+          >
             No messages yet
           </p>
         ) : (
@@ -134,19 +216,29 @@ function MessageThread({
                 }`}
               >
                 <div
-                  className={`max-w-[70%] rounded-2xl px-4 py-2 ${
+                  className="max-w-[70%] rounded-2xl px-4 py-2"
+                  style={
                     msg.direction === "outbound"
-                      ? "bg-indigo-600 text-white"
-                      : "bg-gray-100 text-gray-900"
-                  }`}
+                      ? {
+                          background:
+                            "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)",
+                          color: "#fff",
+                        }
+                      : {
+                          background: "var(--surface-warm)",
+                          color: "var(--text-primary)",
+                        }
+                  }
                 >
                   <p className="text-sm">{msg.content}</p>
                   <div
-                    className={`mt-1 flex items-center gap-1 text-xs ${
-                      msg.direction === "outbound"
-                        ? "text-indigo-200"
-                        : "text-gray-400"
-                    }`}
+                    className="mt-1 flex items-center gap-1 text-xs"
+                    style={{
+                      color:
+                        msg.direction === "outbound"
+                          ? "rgba(255,255,255,0.7)"
+                          : "var(--text-muted)",
+                    }}
                   >
                     <span>{msg.senderType}</span>
                     <span>&middot;</span>
@@ -168,7 +260,10 @@ function MessageThread({
       </div>
 
       {/* Input */}
-      <div className="border-t p-4">
+      <div
+        className="p-4"
+        style={{ borderTop: "1px solid var(--border-light)" }}
+      >
         <div className="flex gap-2">
           <input
             type="text"
@@ -176,11 +271,26 @@ function MessageThread({
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
             placeholder="Type a message..."
-            className="flex-1 rounded-lg border border-gray-200 px-4 py-2 text-sm outline-none focus:border-indigo-500"
+            className="flex-1 rounded-xl px-4 py-2 text-sm outline-none transition-colors"
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border-light)",
+              color: "var(--text-primary)",
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = "var(--accent)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = "var(--border-light)";
+            }}
           />
           <button
             onClick={handleSend}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
+            className="rounded-xl px-4 py-2 text-white transition-all"
+            style={{
+              background:
+                "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)",
+            }}
           >
             <Send className="h-4 w-4" />
           </button>

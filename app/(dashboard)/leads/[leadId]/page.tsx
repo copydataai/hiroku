@@ -50,7 +50,10 @@ export default function LeadDetailPage() {
   if (!lead || !restaurant) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
+        <div
+          className="h-8 w-8 animate-spin rounded-full border-4"
+          style={{ borderColor: "var(--border-light)", borderTopColor: "var(--accent)" }}
+        />
       </div>
     );
   }
@@ -77,18 +80,35 @@ export default function LeadDetailPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-up">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link
           href="/leads"
-          className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          className="rounded-xl p-2 transition-colors"
+          style={{ color: "var(--text-muted)" }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "var(--surface-warm)";
+            e.currentTarget.style.color = "var(--text-secondary)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "transparent";
+            e.currentTarget.style.color = "var(--text-muted)";
+          }}
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold text-gray-900">{lead.name}</h1>
-          <div className="mt-1 flex items-center gap-3 text-sm text-gray-500">
+          <h1
+            className="text-2xl tracking-tight font-semibold"
+            style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)" }}
+          >
+            {lead.name}
+          </h1>
+          <div
+            className="mt-1 flex items-center gap-3 text-sm"
+            style={{ color: "var(--text-muted)" }}
+          >
             {lead.phone && (
               <span className="flex items-center gap-1">
                 <Phone className="h-3 w-3" /> {lead.phone}
@@ -106,17 +126,25 @@ export default function LeadDetailPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Left: Lead Info */}
         <div className="space-y-4">
-          <div className="rounded-xl bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-sm font-semibold uppercase text-gray-500">
+          <div
+            className="rounded-2xl p-6"
+            style={{ background: "var(--surface)", border: "1px solid var(--border-light)" }}
+          >
+            <h2
+              className="mb-4 text-xs font-semibold uppercase tracking-wider"
+              style={{ color: "var(--text-muted)" }}
+            >
               Details
             </h2>
             <dl className="space-y-3 text-sm">
               <div>
-                <dt className="text-gray-500">Source</dt>
-                <dd className="font-medium text-gray-900">{lead.source}</dd>
+                <dt style={{ color: "var(--text-muted)" }}>Source</dt>
+                <dd className="font-medium" style={{ color: "var(--text-primary)" }}>
+                  {lead.source}
+                </dd>
               </div>
               <div>
-                <dt className="text-gray-500">Stage</dt>
+                <dt style={{ color: "var(--text-muted)" }}>Stage</dt>
                 <dd>
                   <select
                     value={lead.pipelineStage}
@@ -126,7 +154,14 @@ export default function LeadDetailPage() {
                         pipelineStage: e.target.value,
                       })
                     }
-                    className="rounded-lg border border-gray-200 px-2 py-1 text-sm"
+                    className="rounded-xl px-2 py-1 text-sm outline-none transition-colors"
+                    style={{
+                      background: "var(--surface)",
+                      border: "1px solid var(--border-light)",
+                      color: "var(--text-primary)",
+                    }}
+                    onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
+                    onBlur={(e) => (e.target.style.borderColor = "var(--border-light)")}
                   >
                     {(restaurant.pipelineStages ?? []).map((s: any) => (
                       <option key={s.id} value={s.id}>
@@ -137,7 +172,7 @@ export default function LeadDetailPage() {
                 </dd>
               </div>
               <div>
-                <dt className="text-gray-500">Priority</dt>
+                <dt style={{ color: "var(--text-muted)" }}>Priority</dt>
                 <dd>
                   <select
                     value={lead.priority}
@@ -147,7 +182,14 @@ export default function LeadDetailPage() {
                         priority: e.target.value as any,
                       })
                     }
-                    className="rounded-lg border border-gray-200 px-2 py-1 text-sm"
+                    className="rounded-xl px-2 py-1 text-sm outline-none transition-colors"
+                    style={{
+                      background: "var(--surface)",
+                      border: "1px solid var(--border-light)",
+                      color: "var(--text-primary)",
+                    }}
+                    onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
+                    onBlur={(e) => (e.target.style.borderColor = "var(--border-light)")}
                   >
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
@@ -157,12 +199,14 @@ export default function LeadDetailPage() {
                 </dd>
               </div>
               <div>
-                <dt className="text-gray-500">Score</dt>
-                <dd className="font-medium text-gray-900">{lead.score}</dd>
+                <dt style={{ color: "var(--text-muted)" }}>Score</dt>
+                <dd className="font-medium" style={{ color: "var(--text-primary)" }}>
+                  {lead.score}
+                </dd>
               </div>
               <div>
-                <dt className="text-gray-500">Created</dt>
-                <dd className="text-gray-700">
+                <dt style={{ color: "var(--text-muted)" }}>Created</dt>
+                <dd style={{ color: "var(--text-secondary)" }}>
                   {new Date(lead._creationTime).toLocaleDateString()}
                 </dd>
               </div>
@@ -170,50 +214,86 @@ export default function LeadDetailPage() {
           </div>
 
           {/* Tags */}
-          <div className="rounded-xl bg-white p-6 shadow-sm">
-            <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase text-gray-500">
+          <div
+            className="rounded-2xl p-6"
+            style={{ background: "var(--surface)", border: "1px solid var(--border-light)" }}
+          >
+            <h2
+              className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider"
+              style={{ color: "var(--text-muted)" }}
+            >
               <Tag className="h-4 w-4" /> Tags
             </h2>
             <div className="flex flex-wrap gap-2">
               {leadTags?.map((tag: any) => (
                 <span
                   key={tag._id}
-                  className="rounded-full px-3 py-1 text-xs font-medium text-white"
+                  className="rounded-lg px-3 py-1 text-xs font-medium text-white"
                   style={{ backgroundColor: tag.color }}
                 >
                   {tag.name}
                 </span>
               ))}
               {(!leadTags || leadTags.length === 0) && (
-                <span className="text-sm text-gray-400">No tags</span>
+                <span className="text-sm" style={{ color: "var(--text-muted)" }}>
+                  No tags
+                </span>
               )}
             </div>
           </div>
 
           {lead.notes && (
-            <div className="rounded-xl bg-white p-6 shadow-sm">
-              <h2 className="mb-2 text-sm font-semibold uppercase text-gray-500">
+            <div
+              className="rounded-2xl p-6"
+              style={{ background: "var(--surface)", border: "1px solid var(--border-light)" }}
+            >
+              <h2
+                className="mb-2 text-xs font-semibold uppercase tracking-wider"
+                style={{ color: "var(--text-muted)" }}
+              >
                 Notes
               </h2>
-              <p className="text-sm text-gray-700">{lead.notes}</p>
+              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                {lead.notes}
+              </p>
             </div>
           )}
         </div>
 
         {/* Right: Tabs */}
         <div className="lg:col-span-2">
-          <div className="rounded-xl bg-white shadow-sm">
+          <div
+            className="rounded-2xl"
+            style={{ background: "var(--surface)", border: "1px solid var(--border-light)" }}
+          >
             {/* Tab headers */}
-            <div className="flex border-b">
+            <div
+              className="flex"
+              style={{ borderBottom: "1px solid var(--border-light)" }}
+            >
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
-                    activeTab === tab.id
-                      ? "border-indigo-600 text-indigo-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700"
-                  }`}
+                  className="flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors"
+                  style={{
+                    borderBottom: activeTab === tab.id
+                      ? "2px solid var(--accent)"
+                      : "2px solid transparent",
+                    color: activeTab === tab.id
+                      ? "var(--accent)"
+                      : "var(--text-muted)",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (activeTab !== tab.id) {
+                      e.currentTarget.style.color = "var(--text-secondary)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (activeTab !== tab.id) {
+                      e.currentTarget.style.color = "var(--text-muted)";
+                    }
+                  }}
                 >
                   <tab.icon className="h-4 w-4" />
                   {tab.label}
@@ -235,11 +315,22 @@ export default function LeadDetailPage() {
                         e.key === "Enter" && handleAddNote()
                       }
                       placeholder="Add a note..."
-                      className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                      className="flex-1 rounded-xl px-3 py-2 text-sm outline-none transition-colors"
+                      style={{
+                        background: "var(--surface)",
+                        border: "1px solid var(--border-light)",
+                        color: "var(--text-primary)",
+                      }}
+                      onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
+                      onBlur={(e) => (e.target.style.borderColor = "var(--border-light)")}
                     />
                     <button
                       onClick={handleAddNote}
-                      className="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-700"
+                      className="rounded-xl px-4 py-2 text-sm font-medium shadow-sm transition-all hover:shadow-md"
+                      style={{
+                        background: "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)",
+                        color: "#fff",
+                      }}
                     >
                       Add
                     </button>
@@ -249,30 +340,40 @@ export default function LeadDetailPage() {
                   {activities?.map((activity: any) => (
                     <div
                       key={activity._id}
-                      className="flex items-start gap-3 border-l-2 border-gray-200 pl-4"
+                      className="flex items-start gap-3 pl-4"
+                      style={{ borderLeft: "2px solid var(--border-light)" }}
                     >
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
                           {activity.title}
                         </p>
                         {activity.description && (
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm" style={{ color: "var(--text-muted)" }}>
                             {activity.description}
                           </p>
                         )}
-                        <p className="mt-1 text-xs text-gray-400">
+                        <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
                           {new Date(
                             activity._creationTime
                           ).toLocaleString()}
                         </p>
                       </div>
-                      <span className="shrink-0 rounded-full bg-gray-100 px-2 py-1 text-xs">
+                      <span
+                        className="shrink-0 rounded-lg px-2 py-1 text-xs font-medium"
+                        style={{
+                          background: "var(--surface-warm)",
+                          color: "var(--text-secondary)",
+                        }}
+                      >
                         {activity.type}
                       </span>
                     </div>
                   ))}
                   {(!activities || activities.length === 0) && (
-                    <p className="py-8 text-center text-sm text-gray-400">
+                    <p
+                      className="py-8 text-center text-sm"
+                      style={{ color: "var(--text-muted)" }}
+                    >
                       No activity yet
                     </p>
                   )}
@@ -284,7 +385,11 @@ export default function LeadDetailPage() {
                   <div className="mb-4 flex justify-end">
                     <Link
                       href={`/invoices/new?leadId=${lead._id}`}
-                      className="flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700"
+                      className="flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium shadow-sm transition-all hover:shadow-md"
+                      style={{
+                        background: "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)",
+                        color: "#fff",
+                      }}
                     >
                       <Plus className="h-4 w-4" /> New Invoice
                     </Link>
@@ -295,34 +400,51 @@ export default function LeadDetailPage() {
                         <Link
                           key={inv._id}
                           href={`/invoices/${inv._id}`}
-                          className="flex items-center justify-between rounded-lg border p-3 hover:bg-gray-50"
+                          className="flex items-center justify-between rounded-xl p-3 transition-colors"
+                          style={{ border: "1px solid var(--border-light)" }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.background = "var(--surface-warm)")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.background = "transparent")
+                          }
                         >
                           <div>
-                            <span className="font-medium">
+                            <span
+                              className="font-medium"
+                              style={{ color: "var(--text-primary)" }}
+                            >
                               {inv.invoiceNumber}
                             </span>
                             <span
-                              className={`ml-2 rounded-full px-2 py-0.5 text-xs font-medium ${
+                              className="ml-2 rounded-lg px-2 py-0.5 text-xs font-medium"
+                              style={
                                 inv.status === "paid"
-                                  ? "bg-emerald-100 text-emerald-700"
+                                  ? { background: "var(--success-light)", color: "var(--success)" }
                                   : inv.status === "sent"
-                                    ? "bg-blue-100 text-blue-700"
+                                    ? { background: "var(--surface-warm)", color: "var(--accent)" }
                                     : inv.status === "overdue"
-                                      ? "bg-red-100 text-red-700"
-                                      : "bg-gray-100 text-gray-600"
-                              }`}
+                                      ? { background: "var(--danger-light)", color: "var(--danger)" }
+                                      : { background: "var(--surface-warm)", color: "var(--text-secondary)" }
+                              }
                             >
                               {inv.status}
                             </span>
                           </div>
-                          <span className="font-medium">
+                          <span
+                            className="font-medium"
+                            style={{ color: "var(--text-primary)" }}
+                          >
                             ${inv.total.toFixed(2)}
                           </span>
                         </Link>
                       ))}
                     </div>
                   ) : (
-                    <p className="py-8 text-center text-sm text-gray-400">
+                    <p
+                      className="py-8 text-center text-sm"
+                      style={{ color: "var(--text-muted)" }}
+                    >
                       No invoices yet
                     </p>
                   )}
@@ -336,34 +458,43 @@ export default function LeadDetailPage() {
                       {leadTasks.map((task: any) => (
                         <div
                           key={task._id}
-                          className="flex items-center gap-3 rounded-lg border p-3"
+                          className="flex items-center gap-3 rounded-xl p-3"
+                          style={{ border: "1px solid var(--border-light)" }}
                         >
                           <div
-                            className={`h-3 w-3 rounded-full ${
-                              task.status === "completed"
-                                ? "bg-emerald-500"
-                                : task.status === "in_progress"
-                                  ? "bg-blue-500"
-                                  : "bg-gray-300"
-                            }`}
+                            className="h-3 w-3 rounded-full"
+                            style={{
+                              backgroundColor:
+                                task.status === "completed"
+                                  ? "var(--success)"
+                                  : task.status === "in_progress"
+                                    ? "var(--accent)"
+                                    : "var(--border-light)",
+                            }}
                           />
                           <div className="flex-1">
-                            <p className="text-sm font-medium">{task.title}</p>
+                            <p
+                              className="text-sm font-medium"
+                              style={{ color: "var(--text-primary)" }}
+                            >
+                              {task.title}
+                            </p>
                             {task.dueAt && (
-                              <p className="text-xs text-gray-500">
+                              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
                                 Due:{" "}
                                 {new Date(task.dueAt).toLocaleDateString()}
                               </p>
                             )}
                           </div>
                           <span
-                            className={`rounded-full px-2 py-1 text-xs ${
+                            className="rounded-lg px-2 py-1 text-xs font-medium"
+                            style={
                               task.priority === "urgent"
-                                ? "bg-red-100 text-red-700"
+                                ? { background: "var(--danger-light)", color: "var(--danger)" }
                                 : task.priority === "high"
-                                  ? "bg-amber-100 text-amber-700"
-                                  : "bg-gray-100 text-gray-600"
-                            }`}
+                                  ? { background: "var(--warning-light)", color: "var(--warning)" }
+                                  : { background: "var(--surface-warm)", color: "var(--text-secondary)" }
+                            }
                           >
                             {task.priority}
                           </span>
@@ -371,7 +502,10 @@ export default function LeadDetailPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="py-8 text-center text-sm text-gray-400">
+                    <p
+                      className="py-8 text-center text-sm"
+                      style={{ color: "var(--text-muted)" }}
+                    >
                       No tasks yet
                     </p>
                   )}
@@ -379,10 +513,14 @@ export default function LeadDetailPage() {
               )}
 
               {activeTab === "conversations" && (
-                <p className="py-8 text-center text-sm text-gray-400">
+                <p
+                  className="py-8 text-center text-sm"
+                  style={{ color: "var(--text-muted)" }}
+                >
                   <Link
                     href="/conversations"
-                    className="text-indigo-600 hover:text-indigo-700"
+                    className="transition-colors hover:underline"
+                    style={{ color: "var(--accent)" }}
                   >
                     Open conversations
                   </Link>

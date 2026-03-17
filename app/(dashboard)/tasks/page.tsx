@@ -49,13 +49,81 @@ export default function TasksPage() {
     updateTask({ taskId, status: status as any });
   };
 
+  const getStatusStyle = (status: string) => {
+    switch (status) {
+      case "completed":
+        return {
+          background: "var(--success-light)",
+          color: "var(--success)",
+          border: "1px solid var(--success-light)",
+        };
+      case "in_progress":
+        return {
+          background: "rgba(99,102,241,0.08)",
+          color: "#6366f1",
+          border: "1px solid rgba(99,102,241,0.12)",
+        };
+      case "cancelled":
+        return {
+          background: "var(--border-light)",
+          color: "var(--text-muted)",
+          border: "1px solid var(--border-light)",
+        };
+      default:
+        return {
+          background: "var(--warning-light)",
+          color: "var(--warning)",
+          border: "1px solid var(--warning-light)",
+        };
+    }
+  };
+
+  const getPriorityStyle = (priority: string) => {
+    switch (priority) {
+      case "urgent":
+        return {
+          background: "var(--danger-light)",
+          color: "var(--danger)",
+        };
+      case "high":
+        return {
+          background: "var(--warning-light)",
+          color: "var(--warning)",
+        };
+      case "medium":
+        return {
+          background: "rgba(99,102,241,0.08)",
+          color: "#6366f1",
+        };
+      default:
+        return {
+          background: "var(--border-light)",
+          color: "var(--text-muted)",
+        };
+    }
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="animate-fade-up space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Tasks</h1>
+        <h1
+          className="text-2xl tracking-tight"
+          style={{
+            fontFamily: "var(--font-display)",
+            color: "var(--text-primary)",
+          }}
+        >
+          Tasks
+        </h1>
         <button
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors"
+          style={{
+            background:
+              "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)",
+            color: "#fff",
+          }}
         >
           <Plus className="h-4 w-4" />
           New Task
@@ -63,11 +131,22 @@ export default function TasksPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm">
+      <div
+        className="flex items-center gap-3 rounded-2xl p-4"
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border-light)",
+        }}
+      >
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm outline-none"
+          className="rounded-xl px-3 py-1.5 text-sm outline-none"
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border-light)",
+            color: "var(--text-primary)",
+          }}
         >
           <option value="">All Statuses</option>
           <option value="pending">Pending</option>
@@ -79,20 +158,45 @@ export default function TasksPage() {
 
       {/* Quick create */}
       {showCreate && (
-        <div className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm">
+        <div
+          className="flex items-center gap-3 rounded-2xl p-4"
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border-light)",
+          }}
+        >
           <input
             type="text"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleCreate()}
             placeholder="Task title..."
-            className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+            className="flex-1 rounded-xl px-3 py-2 text-sm outline-none"
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border-light)",
+              color: "var(--text-primary)",
+              boxShadow: "0 0 0 0 transparent",
+              transition: "box-shadow 0.2s ease",
+            }}
+            onFocus={(e) =>
+              (e.currentTarget.style.boxShadow =
+                "0 0 0 2px rgba(200,150,62,0.3)")
+            }
+            onBlur={(e) =>
+              (e.currentTarget.style.boxShadow = "0 0 0 0 transparent")
+            }
             autoFocus
           />
           <select
             value={newPriority}
             onChange={(e) => setNewPriority(e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            className="rounded-xl px-3 py-2 text-sm"
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border-light)",
+              color: "var(--text-primary)",
+            }}
           >
             <option value="low">Low</option>
             <option value="medium">Medium</option>
@@ -102,13 +206,19 @@ export default function TasksPage() {
           <button
             onClick={handleCreate}
             disabled={loading}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
+            className="rounded-xl px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50"
+            style={{
+              background:
+                "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)",
+              color: "#fff",
+            }}
           >
             Create
           </button>
           <button
             onClick={() => setShowCreate(false)}
-            className="text-sm text-gray-500"
+            className="text-sm"
+            style={{ color: "var(--text-muted)" }}
           >
             Cancel
           </button>
@@ -118,17 +228,42 @@ export default function TasksPage() {
       {/* Task list */}
       <div className="space-y-2">
         {tasks === undefined ? (
-          <p className="py-8 text-center text-gray-400">Loading...</p>
+          <p
+            className="py-8 text-center"
+            style={{ color: "var(--text-muted)" }}
+          >
+            Loading...
+          </p>
         ) : tasks.length === 0 ? (
-          <div className="rounded-xl bg-white py-12 text-center shadow-sm">
-            <CheckSquare className="mx-auto mb-2 h-8 w-8 text-gray-400" />
-            <p className="text-gray-500">No tasks found</p>
+          <div
+            className="rounded-2xl py-12 text-center"
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border-light)",
+            }}
+          >
+            <CheckSquare
+              className="mx-auto mb-2 h-8 w-8"
+              style={{ color: "var(--text-muted)" }}
+            />
+            <p style={{ color: "var(--text-secondary)" }}>No tasks found</p>
           </div>
         ) : (
           tasks.map((task: any) => (
             <div
               key={task._id}
-              className="flex items-center gap-4 rounded-xl bg-white px-6 py-4 shadow-sm"
+              className="flex items-center gap-4 rounded-2xl px-6 py-4 transition-all"
+              style={{
+                background: "var(--surface)",
+                border: "1px solid var(--border-light)",
+                borderLeft: "3px solid transparent",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.borderLeftColor = "var(--accent)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.borderLeftColor = "transparent")
+              }
             >
               {/* Status indicator */}
               <select
@@ -136,15 +271,8 @@ export default function TasksPage() {
                 onChange={(e) =>
                   handleStatusChange(task._id, e.target.value)
                 }
-                className={`rounded-lg border px-2 py-1 text-xs font-medium ${
-                  task.status === "completed"
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                    : task.status === "in_progress"
-                      ? "border-blue-200 bg-blue-50 text-blue-700"
-                      : task.status === "cancelled"
-                        ? "border-gray-200 bg-gray-50 text-gray-500"
-                        : "border-amber-200 bg-amber-50 text-amber-700"
-                }`}
+                className="rounded-lg px-2 py-1 text-xs font-medium outline-none"
+                style={getStatusStyle(task.status)}
               >
                 <option value="pending">Pending</option>
                 <option value="in_progress">In Progress</option>
@@ -154,41 +282,47 @@ export default function TasksPage() {
 
               <div className="flex-1">
                 <p
-                  className={`font-medium ${
+                  className="font-medium"
+                  style={
                     task.status === "completed"
-                      ? "text-gray-400 line-through"
-                      : "text-gray-900"
-                  }`}
+                      ? {
+                          textDecoration: "line-through",
+                          color: "var(--text-muted)",
+                        }
+                      : { color: "var(--text-primary)" }
+                  }
                 >
                   {task.title}
                 </p>
                 {task.description && (
-                  <p className="text-sm text-gray-500">{task.description}</p>
+                  <p
+                    className="text-sm"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    {task.description}
+                  </p>
                 )}
               </div>
 
               <div className="flex items-center gap-3">
                 {task.dueAt && (
                   <span
-                    className={`text-sm ${
+                    className="text-sm"
+                    style={
                       task.dueAt < Date.now() && task.status !== "completed"
-                        ? "font-medium text-red-600"
-                        : "text-gray-500"
-                    }`}
+                        ? {
+                            color: "var(--danger)",
+                            fontWeight: 500,
+                          }
+                        : { color: "var(--text-secondary)" }
+                    }
                   >
                     {new Date(task.dueAt).toLocaleDateString()}
                   </span>
                 )}
                 <span
-                  className={`rounded-full px-2 py-1 text-xs font-medium ${
-                    task.priority === "urgent"
-                      ? "bg-red-100 text-red-700"
-                      : task.priority === "high"
-                        ? "bg-amber-100 text-amber-700"
-                        : task.priority === "medium"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-gray-100 text-gray-600"
-                  }`}
+                  className="rounded-full px-2 py-1 text-xs font-medium"
+                  style={getPriorityStyle(task.priority)}
                 >
                   {task.priority}
                 </span>

@@ -35,21 +35,38 @@ export default function MenuPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="animate-fade-up space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Menu Management</h1>
+        <h1
+          className="text-2xl tracking-tight"
+          style={{
+            fontFamily: "var(--font-display)",
+            color: "var(--text-primary)",
+          }}
+        >
+          Menu Management
+        </h1>
         <div className="flex items-center gap-3">
           <Link
             href={`/menu/${restaurant.slug}`}
             target="_blank"
-            className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors"
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border-light)",
+              color: "var(--text-secondary)",
+            }}
           >
             <ExternalLink className="h-4 w-4" />
             Public Menu
           </Link>
           <button
             onClick={() => setShowAddMenu(true)}
-            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+            className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-white transition-all"
+            style={{
+              background:
+                "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)",
+            }}
           >
             <Plus className="h-4 w-4" />
             Add Menu
@@ -58,25 +75,51 @@ export default function MenuPage() {
       </div>
 
       {showAddMenu && (
-        <div className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm">
+        <div
+          className="flex items-center gap-3 rounded-2xl p-4"
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border-light)",
+          }}
+        >
           <input
             type="text"
             value={newMenuName}
             onChange={(e) => setNewMenuName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleCreateMenu()}
             placeholder="Menu name (e.g., Lunch, Dinner)"
-            className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+            className="flex-1 rounded-xl px-3 py-2 text-sm outline-none transition-colors"
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border-light)",
+              color: "var(--text-primary)",
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = "var(--accent)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = "var(--border-light)";
+            }}
             autoFocus
           />
           <button
             onClick={handleCreateMenu}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-700"
+            className="rounded-xl px-4 py-2 text-sm font-medium text-white transition-all"
+            style={{
+              background:
+                "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)",
+            }}
           >
             Create
           </button>
           <button
             onClick={() => setShowAddMenu(false)}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            className="rounded-xl px-4 py-2 text-sm font-medium transition-colors"
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border-light)",
+              color: "var(--text-secondary)",
+            }}
           >
             Cancel
           </button>
@@ -85,15 +128,32 @@ export default function MenuPage() {
 
       {/* Menu list */}
       {menus === undefined ? (
-        <div className="py-8 text-center text-gray-400">Loading...</div>
+        <div
+          className="py-8 text-center text-sm"
+          style={{ color: "var(--text-muted)" }}
+        >
+          Loading...
+        </div>
       ) : menus.length === 0 ? (
-        <div className="rounded-xl bg-white py-12 text-center shadow-sm">
-          <p className="text-gray-500">No menus yet. Create your first menu above.</p>
+        <div
+          className="rounded-2xl py-12 text-center"
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border-light)",
+          }}
+        >
+          <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+            No menus yet. Create your first menu above.
+          </p>
         </div>
       ) : (
         <div className="space-y-4">
           {menus.map((menu: any) => (
-            <MenuSection key={menu._id} menu={menu} restaurantId={restaurant._id} />
+            <MenuSection
+              key={menu._id}
+              menu={menu}
+              restaurantId={restaurant._id}
+            />
           ))}
         </div>
       )}
@@ -127,34 +187,61 @@ function MenuSection({
   };
 
   return (
-    <div className="rounded-xl bg-white shadow-sm">
-      <div className="flex items-center justify-between border-b p-4">
+    <div
+      className="overflow-hidden rounded-2xl"
+      style={{
+        background: "var(--surface)",
+        border: "1px solid var(--border-light)",
+      }}
+    >
+      <div
+        className="flex items-center justify-between p-4"
+        style={{ borderBottom: "1px solid var(--border-light)" }}
+      >
         <button
           onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-2 text-lg font-semibold text-gray-900"
+          className="flex items-center gap-2 text-lg font-medium"
+          style={{
+            fontFamily: "var(--font-display)",
+            color: "var(--text-primary)",
+          }}
         >
           {expanded ? (
-            <ChevronDown className="h-5 w-5" />
+            <ChevronDown
+              className="h-5 w-5"
+              style={{ color: "var(--text-muted)" }}
+            />
           ) : (
-            <ChevronRight className="h-5 w-5" />
+            <ChevronRight
+              className="h-5 w-5"
+              style={{ color: "var(--text-muted)" }}
+            />
           )}
           {menu.name}
         </button>
         <div className="flex items-center gap-2">
-          <label className="flex items-center gap-2 text-sm">
+          <label
+            className="flex items-center gap-2 text-sm"
+            style={{ color: "var(--text-secondary)" }}
+          >
             <input
               type="checkbox"
               checked={menu.isActive}
               onChange={(e) =>
                 updateMenu({ menuId: menu._id, isActive: e.target.checked })
               }
-              className="rounded"
+              className="rounded accent-[#c8963e]"
             />
             Active
           </label>
           <button
             onClick={() => setShowAddCat(true)}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+            className="flex items-center gap-1 rounded-xl px-3 py-1.5 text-sm font-medium transition-colors"
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border-light)",
+              color: "var(--text-secondary)",
+            }}
           >
             <Plus className="inline h-4 w-4" /> Category
           </button>
@@ -164,7 +251,16 @@ function MenuSection({
                 removeMenu({ menuId: menu._id });
               }
             }}
-            className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
+            className="rounded-xl p-1.5 transition-colors"
+            style={{ color: "var(--text-muted)" }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "var(--danger-light, rgba(220,38,38,0.08))";
+              e.currentTarget.style.color = "var(--danger)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.color = "var(--text-muted)";
+            }}
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -181,18 +277,34 @@ function MenuSection({
                 onChange={(e) => setNewCatName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAddCategory()}
                 placeholder="Category name"
-                className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+                className="flex-1 rounded-xl px-3 py-2 text-sm outline-none transition-colors"
+                style={{
+                  background: "var(--surface)",
+                  border: "1px solid var(--border-light)",
+                  color: "var(--text-primary)",
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = "var(--accent)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "var(--border-light)";
+                }}
                 autoFocus
               />
               <button
                 onClick={handleAddCategory}
-                className="rounded-lg bg-indigo-600 px-3 py-2 text-sm text-white hover:bg-indigo-700"
+                className="rounded-xl px-3 py-2 text-sm font-medium text-white transition-all"
+                style={{
+                  background:
+                    "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)",
+                }}
               >
                 Add
               </button>
               <button
                 onClick={() => setShowAddCat(false)}
-                className="text-sm text-gray-500 hover:text-gray-700"
+                className="text-sm font-medium transition-colors"
+                style={{ color: "var(--text-muted)" }}
               >
                 Cancel
               </button>
@@ -206,7 +318,10 @@ function MenuSection({
               ))}
             </div>
           ) : (
-            <p className="py-4 text-center text-sm text-gray-400">
+            <p
+              className="py-4 text-center text-sm"
+              style={{ color: "var(--text-muted)" }}
+            >
               No categories yet
             </p>
           )}
@@ -226,7 +341,11 @@ function CategorySection({ category }: { category: any }) {
   const removeCategory = useMutation(api.menus.removeCategory);
 
   const [showAddItem, setShowAddItem] = useState(false);
-  const [newItem, setNewItem] = useState({ name: "", price: "", description: "" });
+  const [newItem, setNewItem] = useState({
+    name: "",
+    price: "",
+    description: "",
+  });
 
   const handleAddItem = async () => {
     if (!newItem.name || !newItem.price) return;
@@ -241,13 +360,25 @@ function CategorySection({ category }: { category: any }) {
   };
 
   return (
-    <div className="rounded-lg border">
-      <div className="flex items-center justify-between bg-gray-50 px-4 py-2">
-        <h3 className="font-medium text-gray-700">{category.name}</h3>
+    <div
+      className="overflow-hidden rounded-xl"
+      style={{ border: "1px solid var(--border-light)" }}
+    >
+      <div
+        className="flex items-center justify-between px-4 py-2"
+        style={{ background: "var(--surface-warm)" }}
+      >
+        <h3
+          className="font-medium text-sm"
+          style={{ color: "var(--text-primary)" }}
+        >
+          {category.name}
+        </h3>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowAddItem(true)}
-            className="text-sm text-indigo-600 hover:text-indigo-700"
+            className="flex items-center gap-1 text-sm font-medium transition-colors"
+            style={{ color: "var(--accent)" }}
           >
             <Plus className="inline h-4 w-4" /> Item
           </button>
@@ -257,16 +388,26 @@ function CategorySection({ category }: { category: any }) {
                 removeCategory({ categoryId: category._id });
               }
             }}
-            className="text-gray-400 hover:text-red-600"
+            className="transition-colors"
+            style={{ color: "var(--text-muted)" }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = "var(--danger)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = "var(--text-muted)";
+            }}
           >
             <Trash2 className="h-4 w-4" />
           </button>
         </div>
       </div>
 
-      <div className="divide-y">
+      <div>
         {showAddItem && (
-          <div className="flex items-center gap-3 p-3 bg-indigo-50">
+          <div
+            className="flex items-center gap-3 p-3"
+            style={{ background: "rgba(200,150,62,0.08)" }}
+          >
             <input
               type="text"
               value={newItem.name}
@@ -274,7 +415,12 @@ function CategorySection({ category }: { category: any }) {
                 setNewItem({ ...newItem, name: e.target.value })
               }
               placeholder="Item name"
-              className="flex-1 rounded border px-2 py-1 text-sm outline-none"
+              className="flex-1 rounded-lg px-2 py-1 text-sm outline-none"
+              style={{
+                background: "var(--surface)",
+                border: "1px solid var(--border-light)",
+                color: "var(--text-primary)",
+              }}
               autoFocus
             />
             <input
@@ -284,40 +430,66 @@ function CategorySection({ category }: { category: any }) {
                 setNewItem({ ...newItem, price: e.target.value })
               }
               placeholder="Price"
-              className="w-24 rounded border px-2 py-1 text-sm outline-none"
+              className="w-24 rounded-lg px-2 py-1 text-sm outline-none"
+              style={{
+                background: "var(--surface)",
+                border: "1px solid var(--border-light)",
+                color: "var(--text-primary)",
+              }}
               step="0.01"
             />
             <button
               onClick={handleAddItem}
-              className="rounded bg-indigo-600 px-3 py-1 text-sm text-white hover:bg-indigo-700"
+              className="rounded-lg px-3 py-1 text-sm font-medium text-white"
+              style={{
+                background:
+                  "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)",
+              }}
             >
               Add
             </button>
             <button
               onClick={() => setShowAddItem(false)}
-              className="text-sm text-gray-500"
+              className="text-sm"
+              style={{ color: "var(--text-muted)" }}
             >
               Cancel
             </button>
           </div>
         )}
 
-        {items?.map((item: any) => (
+        {items?.map((item: any, index: number) => (
           <div
             key={item._id}
             className="flex items-center justify-between px-4 py-3"
+            style={{
+              borderTop: index > 0 || showAddItem ? "1px solid var(--border-light)" : undefined,
+            }}
           >
             <div className="flex-1">
-              <p className="font-medium text-gray-900">{item.name}</p>
+              <p
+                className="font-medium text-sm"
+                style={{ color: "var(--text-primary)" }}
+              >
+                {item.name}
+              </p>
               {item.description && (
-                <p className="text-sm text-gray-500">{item.description}</p>
+                <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+                  {item.description}
+                </p>
               )}
             </div>
             <div className="flex items-center gap-3">
-              <span className="font-medium text-gray-900">
+              <span
+                className="font-medium text-sm"
+                style={{ color: "var(--accent)" }}
+              >
                 ${item.price.toFixed(2)}
               </span>
-              <label className="flex items-center gap-1 text-xs text-gray-500">
+              <label
+                className="flex items-center gap-1 text-xs"
+                style={{ color: "var(--text-muted)" }}
+              >
                 <input
                   type="checkbox"
                   checked={item.isAvailable}
@@ -327,12 +499,20 @@ function CategorySection({ category }: { category: any }) {
                       isAvailable: e.target.checked,
                     })
                   }
+                  className="accent-[#c8963e]"
                 />
                 Available
               </label>
               <button
                 onClick={() => removeItem({ itemId: item._id })}
-                className="text-gray-400 hover:text-red-600"
+                className="transition-colors"
+                style={{ color: "var(--text-muted)" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = "var(--danger)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = "var(--text-muted)";
+                }}
               >
                 <Trash2 className="h-4 w-4" />
               </button>
@@ -341,7 +521,10 @@ function CategorySection({ category }: { category: any }) {
         ))}
 
         {items && items.length === 0 && !showAddItem && (
-          <p className="py-4 text-center text-sm text-gray-400">
+          <p
+            className="py-4 text-center text-sm"
+            style={{ color: "var(--text-muted)" }}
+          >
             No items yet
           </p>
         )}

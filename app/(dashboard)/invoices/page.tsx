@@ -22,13 +22,42 @@ export default function InvoicesPage() {
 
   if (!restaurant) return null;
 
+  const getStatusStyle = (status: string) => {
+    switch (status) {
+      case "paid":
+        return { background: "var(--success-light)", color: "var(--success)" };
+      case "sent":
+        return { background: "rgba(99,102,241,0.08)", color: "#6366f1" };
+      case "overdue":
+        return { background: "var(--danger-light)", color: "var(--danger)" };
+      case "cancelled":
+        return { background: "var(--border-light)", color: "var(--text-muted)" };
+      case "draft":
+      default:
+        return { background: "var(--warning-light)", color: "var(--warning)" };
+    }
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="animate-fade-up space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Invoices</h1>
+        <h1
+          className="text-2xl tracking-tight"
+          style={{
+            fontFamily: "var(--font-display)",
+            color: "var(--text-primary)",
+          }}
+        >
+          Invoices
+        </h1>
         <Link
           href="/invoices/new"
-          className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-all hover:opacity-90"
+          style={{
+            background:
+              "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)",
+            color: "#fff",
+          }}
         >
           <Plus className="h-4 w-4" />
           New Invoice
@@ -36,11 +65,22 @@ export default function InvoicesPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm">
+      <div
+        className="flex items-center gap-3 rounded-2xl p-4"
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border-light)",
+        }}
+      >
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm outline-none"
+          className="rounded-xl px-3 py-1.5 text-sm outline-none"
+          style={{
+            background: "var(--surface-warm)",
+            border: "1px solid var(--border-light)",
+            color: "var(--text-secondary)",
+          }}
         >
           <option value="">All Statuses</option>
           <option value="draft">Draft</option>
@@ -53,28 +93,77 @@ export default function InvoicesPage() {
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-xl bg-white shadow-sm">
+      <div
+        className="overflow-hidden rounded-2xl"
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border-light)",
+        }}
+      >
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b bg-gray-50">
-              <th className="px-4 py-3 font-medium text-gray-600">Invoice #</th>
-              <th className="px-4 py-3 font-medium text-gray-600">Status</th>
-              <th className="px-4 py-3 font-medium text-gray-600">Subtotal</th>
-              <th className="px-4 py-3 font-medium text-gray-600">Tax</th>
-              <th className="px-4 py-3 font-medium text-gray-600">Total</th>
-              <th className="px-4 py-3 font-medium text-gray-600">Date</th>
+            <tr
+              style={{
+                borderBottom: "1px solid var(--border-light)",
+                background: "var(--surface-warm)",
+              }}
+            >
+              <th
+                className="px-5 py-3 text-xs font-medium uppercase tracking-wider"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Invoice #
+              </th>
+              <th
+                className="px-5 py-3 text-xs font-medium uppercase tracking-wider"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Status
+              </th>
+              <th
+                className="px-5 py-3 text-xs font-medium uppercase tracking-wider"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Subtotal
+              </th>
+              <th
+                className="px-5 py-3 text-xs font-medium uppercase tracking-wider"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Tax
+              </th>
+              <th
+                className="px-5 py-3 text-xs font-medium uppercase tracking-wider"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Total
+              </th>
+              <th
+                className="px-5 py-3 text-xs font-medium uppercase tracking-wider"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Date
+              </th>
             </tr>
           </thead>
           <tbody>
             {invoices === undefined ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
+                <td
+                  colSpan={6}
+                  className="px-5 py-8 text-center"
+                  style={{ color: "var(--text-muted)" }}
+                >
                   Loading...
                 </td>
               </tr>
             ) : invoices.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
+                <td
+                  colSpan={6}
+                  className="px-5 py-8 text-center"
+                  style={{ color: "var(--text-muted)" }}
+                >
                   <FileText className="mx-auto mb-2 h-8 w-8" />
                   <p>No invoices found</p>
                 </td>
@@ -83,43 +172,57 @@ export default function InvoicesPage() {
               invoices.map((inv: any) => (
                 <tr
                   key={inv._id}
-                  className="border-b last:border-0 hover:bg-gray-50"
+                  className="transition-colors"
+                  style={{
+                    borderBottom: "1px solid var(--border-light)",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.background =
+                      "var(--accent-light)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.background = "transparent")
+                  }
                 >
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-3.5">
                     <Link
                       href={`/invoices/${inv._id}`}
-                      className="font-medium text-indigo-600 hover:text-indigo-700"
+                      className="font-medium transition-colors hover:opacity-80"
+                      style={{ color: "var(--accent)" }}
                     >
                       {inv.invoiceNumber}
                     </Link>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-3.5">
                     <span
-                      className={`rounded-full px-2 py-1 text-xs font-medium ${
-                        inv.status === "paid"
-                          ? "bg-emerald-100 text-emerald-700"
-                          : inv.status === "sent"
-                            ? "bg-blue-100 text-blue-700"
-                            : inv.status === "overdue"
-                              ? "bg-red-100 text-red-700"
-                              : inv.status === "cancelled"
-                                ? "bg-gray-100 text-gray-500"
-                                : "bg-amber-100 text-amber-700"
-                      }`}
+                      className="rounded-full px-2.5 py-1 text-xs font-medium capitalize"
+                      style={getStatusStyle(inv.status)}
                     >
                       {inv.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
+                  <td
+                    className="px-5 py-3.5"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
                     ${inv.subtotal.toFixed(2)}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
+                  <td
+                    className="px-5 py-3.5"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
                     ${inv.taxAmount.toFixed(2)}
                   </td>
-                  <td className="px-4 py-3 font-medium text-gray-900">
+                  <td
+                    className="px-5 py-3.5 font-medium"
+                    style={{ color: "var(--text-primary)" }}
+                  >
                     ${inv.total.toFixed(2)}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
+                  <td
+                    className="px-5 py-3.5"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
                     {new Date(inv._creationTime).toLocaleDateString()}
                   </td>
                 </tr>
