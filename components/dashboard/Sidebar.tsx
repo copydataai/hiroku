@@ -13,6 +13,7 @@ import {
   CheckSquare,
   Settings,
   ChevronDown,
+  Sparkles,
 } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { useState } from "react";
@@ -46,90 +47,219 @@ export default function Sidebar({
   );
 
   return (
-    <aside className="flex h-full w-64 flex-col bg-slate-900 text-white">
-      {/* Restaurant name */}
-      <div className="flex h-16 items-center gap-2 border-b border-slate-700 px-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-sm font-bold">
+    <aside
+      className="noise-overlay relative flex h-full w-[260px] flex-col"
+      style={{
+        background: "var(--sidebar-bg)",
+        borderRight: "1px solid var(--sidebar-border)",
+      }}
+    >
+      {/* Restaurant identity */}
+      <div
+        className="flex items-center gap-3 px-5 py-5"
+        style={{ borderBottom: "1px solid var(--sidebar-border)" }}
+      >
+        <div
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-sm font-semibold text-white"
+          style={{
+            background: "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)",
+            boxShadow: "0 2px 8px rgba(200,150,62,0.3)",
+          }}
+        >
           {restaurantName.charAt(0).toUpperCase()}
         </div>
-        <span className="truncate font-semibold">{restaurantName}</span>
+        <div className="flex-1 min-w-0">
+          <p
+            className="truncate text-sm font-semibold"
+            style={{ color: "var(--sidebar-text-active)" }}
+          >
+            {restaurantName}
+          </p>
+          <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+            Restaurant
+          </p>
+        </div>
       </div>
 
-      {/* Navigation */}
+      {/* Main nav */}
       <nav className="flex-1 overflow-y-auto px-3 py-4">
-        <ul className="space-y-1">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+        <div className="space-y-0.5">
+          {navItems.map((item, i) => {
+            const isActive =
+              pathname === item.href ||
+              pathname.startsWith(item.href + "/");
             return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={clsx(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-                    isActive
-                      ? "bg-slate-800 text-white"
-                      : "text-slate-400 hover:bg-slate-800 hover:text-white"
-                  )}
-                >
-                  <item.icon className="h-5 w-5 shrink-0" />
-                  {item.label}
-                </Link>
-              </li>
+              <Link
+                key={item.href}
+                href={item.href}
+                className={clsx(
+                  "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-all duration-200",
+                  "animate-slide-in-left"
+                )}
+                style={{
+                  animationDelay: `${i * 40}ms`,
+                  color: isActive
+                    ? "var(--sidebar-text-active)"
+                    : "var(--sidebar-text)",
+                  background: isActive
+                    ? "rgba(200,150,62,0.08)"
+                    : "transparent",
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.color = "var(--sidebar-text-active)";
+                    e.currentTarget.style.background = "rgba(255,255,255,0.04)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.color = "var(--sidebar-text)";
+                    e.currentTarget.style.background = "transparent";
+                  }
+                }}
+              >
+                {/* Active indicator bar */}
+                {isActive && (
+                  <div
+                    className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full"
+                    style={{
+                      background: "var(--accent)",
+                      boxShadow: "0 0 8px rgba(200,150,62,0.4)",
+                    }}
+                  />
+                )}
+
+                <item.icon
+                  className="h-[18px] w-[18px] shrink-0 transition-colors"
+                  style={{
+                    color: isActive ? "var(--accent)" : undefined,
+                  }}
+                />
+                {item.label}
+              </Link>
             );
           })}
+        </div>
 
-          {/* Settings group */}
-          <li>
-            <button
-              onClick={() => setSettingsOpen(!settingsOpen)}
-              className={clsx(
-                "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-                pathname.startsWith("/settings")
-                  ? "bg-slate-800 text-white"
-                  : "text-slate-400 hover:bg-slate-800 hover:text-white"
-              )}
-            >
-              <Settings className="h-5 w-5 shrink-0" />
-              Settings
-              <ChevronDown
-                className={clsx(
-                  "ml-auto h-4 w-4 transition-transform",
-                  settingsOpen && "rotate-180"
-                )}
+        {/* Divider */}
+        <div
+          className="my-4 h-px"
+          style={{ background: "var(--sidebar-border)" }}
+        />
+
+        {/* Settings */}
+        <div>
+          <button
+            onClick={() => setSettingsOpen(!settingsOpen)}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-all duration-200"
+            style={{
+              color: pathname.startsWith("/settings")
+                ? "var(--sidebar-text-active)"
+                : "var(--sidebar-text)",
+              background: pathname.startsWith("/settings")
+                ? "rgba(200,150,62,0.08)"
+                : "transparent",
+            }}
+            onMouseEnter={(e) => {
+              if (!pathname.startsWith("/settings")) {
+                e.currentTarget.style.color = "var(--sidebar-text-active)";
+                e.currentTarget.style.background = "rgba(255,255,255,0.04)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!pathname.startsWith("/settings")) {
+                e.currentTarget.style.color = "var(--sidebar-text)";
+                e.currentTarget.style.background = "transparent";
+              }
+            }}
+          >
+            {pathname.startsWith("/settings") && (
+              <div
+                className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full"
+                style={{
+                  background: "var(--accent)",
+                  boxShadow: "0 0 8px rgba(200,150,62,0.4)",
+                }}
               />
-            </button>
-            {settingsOpen && (
-              <ul className="mt-1 ml-8 space-y-1">
-                {settingsItems.map((item) => (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      className={clsx(
-                        "block rounded-lg px-3 py-1.5 text-sm transition-colors",
-                        pathname === item.href
-                          ? "text-white"
-                          : "text-slate-400 hover:text-white"
-                      )}
-                    >
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
             )}
-          </li>
-        </ul>
+            <Settings
+              className="h-[18px] w-[18px] shrink-0"
+              style={{
+                color: pathname.startsWith("/settings")
+                  ? "var(--accent)"
+                  : undefined,
+              }}
+            />
+            Settings
+            <ChevronDown
+              className={clsx(
+                "ml-auto h-3.5 w-3.5 transition-transform duration-200",
+                settingsOpen && "rotate-180"
+              )}
+            />
+          </button>
+
+          <div
+            className={clsx(
+              "overflow-hidden transition-all duration-300",
+              settingsOpen ? "max-h-60 opacity-100" : "max-h-0 opacity-0"
+            )}
+          >
+            <div className="ml-5 mt-1 space-y-0.5 border-l pl-4" style={{ borderColor: "var(--sidebar-border)" }}>
+              {settingsItems.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="block rounded-md px-3 py-1.5 text-[13px] transition-colors duration-150"
+                    style={{
+                      color: isActive
+                        ? "var(--accent)"
+                        : "var(--sidebar-text)",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.color = "var(--sidebar-text-active)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.color = "var(--sidebar-text)";
+                      }
+                    }}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </nav>
 
-      {/* User */}
-      <div className="border-t border-slate-700 p-4">
-        <UserButton
-          appearance={{
-            elements: {
-              avatarBox: "h-8 w-8",
-            },
-          }}
-        />
+      {/* Footer */}
+      <div
+        className="px-5 py-4"
+        style={{ borderTop: "1px solid var(--sidebar-border)" }}
+      >
+        <div className="flex items-center gap-3">
+          <UserButton
+            appearance={{
+              elements: {
+                avatarBox: "h-8 w-8 rounded-lg",
+              },
+            }}
+          />
+          <div className="flex-1 min-w-0">
+            <p
+              className="truncate text-xs font-medium"
+              style={{ color: "var(--sidebar-text)" }}
+            >
+              Account
+            </p>
+          </div>
+        </div>
       </div>
     </aside>
   );

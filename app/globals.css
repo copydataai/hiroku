@@ -1,26 +1,169 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #faf8f5;
+  --foreground: #1a1a1a;
+  --surface: #ffffff;
+  --surface-warm: #fdf9f3;
+  --border: #e8e2d9;
+  --border-light: #f0ebe4;
+  --text-primary: #1a1a1a;
+  --text-secondary: #6b6358;
+  --text-muted: #9c9488;
+  --accent: #c8963e;
+  --accent-light: #f5e6c8;
+  --accent-hover: #b8862e;
+  --sidebar-bg: #0f0f0f;
+  --sidebar-surface: #1a1a1a;
+  --sidebar-border: #2a2a2a;
+  --sidebar-text: #a0a0a0;
+  --sidebar-text-active: #f5f0e8;
+  --success: #5a8a6a;
+  --success-light: #e8f0eb;
+  --warning: #c8963e;
+  --warning-light: #faf0dc;
+  --danger: #b85c4a;
+  --danger-light: #f5e4e0;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+/* ── Noise texture overlay ─────────────────────────── */
+.noise-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.noise-overlay > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Animations ────────────────────────────────────── */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(1deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease forwards;
+  opacity: 0;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+}
+
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+.delay-600 { animation-delay: 600ms; }
+.delay-700 { animation-delay: 700ms; }
+.delay-800 { animation-delay: 800ms; }
+
+/* ── Skeleton shimmer ──────────────────────────────── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--border-light) 25%,
+    var(--surface) 50%,
+    var(--border-light) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+/* ── Scrollbar ─────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ── Landing page grid pattern ─────────────────────── */
+.grid-pattern {
+  background-image:
+    linear-gradient(rgba(200, 150, 62, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200, 150, 62, 0.06) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+/* ── Stat card hover lift ──────────────────────────── */
+.card-lift {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
 }

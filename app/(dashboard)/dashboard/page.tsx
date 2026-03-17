@@ -7,8 +7,9 @@ import {
   MessageSquare,
   FileText,
   CheckSquare,
-  TrendingUp,
   Clock,
+  ArrowUpRight,
+  TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -32,150 +33,302 @@ export default function DashboardPage() {
       label: "Total Leads",
       value: stats?.totalLeads ?? 0,
       icon: Users,
-      color: "bg-indigo-50 text-indigo-600",
+      accent: "var(--accent)",
+      accentBg: "rgba(200,150,62,0.08)",
       href: "/leads",
     },
     {
       label: "Unread Messages",
       value: stats?.totalUnreadMessages ?? 0,
       icon: MessageSquare,
-      color: "bg-emerald-50 text-emerald-600",
+      accent: "var(--success)",
+      accentBg: "var(--success-light)",
       href: "/conversations",
     },
     {
       label: "Pending Invoices",
       value: stats?.pendingInvoices ?? 0,
       icon: FileText,
-      color: "bg-amber-50 text-amber-600",
+      accent: "var(--warning)",
+      accentBg: "var(--warning-light)",
       href: "/invoices",
     },
     {
       label: "Open Tasks",
       value: stats?.openTasks ?? 0,
       icon: CheckSquare,
-      color: "bg-rose-50 text-rose-600",
+      accent: "var(--danger)",
+      accentBg: "var(--danger-light)",
       href: "/tasks",
     },
   ];
 
   const pipelineStages = restaurant.pipelineStages ?? [];
+  const now = new Date();
+  const greeting =
+    now.getHours() < 12
+      ? "Good morning"
+      : now.getHours() < 18
+        ? "Good afternoon"
+        : "Good evening";
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="animate-fade-up">
+        <h1
+          className="text-3xl tracking-tight"
+          style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)" }}
+        >
+          {greeting}
+        </h1>
+        <p className="mt-1 text-sm" style={{ color: "var(--text-secondary)" }}>
+          Here&apos;s what&apos;s happening at {restaurant.name} today.
+        </p>
+      </div>
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {statCards.map((card) => (
+        {statCards.map((card, i) => (
           <Link
             key={card.label}
             href={card.href}
-            className="rounded-xl bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+            className={`animate-fade-up delay-${(i + 1) * 100} card-lift group relative overflow-hidden rounded-2xl p-6`}
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border-light)",
+            }}
           >
-            <div className="flex items-center justify-between">
+            {/* Subtle top accent line */}
+            <div
+              className="absolute left-0 right-0 top-0 h-[2px]"
+              style={{ background: card.accent, opacity: 0.6 }}
+            />
+
+            <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-gray-500">{card.label}</p>
-                <p className="mt-1 text-3xl font-bold text-gray-900">
+                <p
+                  className="text-xs font-medium uppercase tracking-wider"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  {card.label}
+                </p>
+                <p
+                  className="mt-3 text-4xl font-light tracking-tight"
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    color: "var(--text-primary)",
+                  }}
+                >
                   {card.value}
                 </p>
               </div>
-              <div className={`rounded-lg p-3 ${card.color}`}>
-                <card.icon className="h-6 w-6" />
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-xl"
+                style={{
+                  background: card.accentBg,
+                  color: card.accent,
+                }}
+              >
+                <card.icon className="h-5 w-5" />
               </div>
+            </div>
+
+            <div
+              className="mt-4 flex items-center gap-1 text-xs font-medium opacity-0 transition-opacity group-hover:opacity-100"
+              style={{ color: card.accent }}
+            >
+              View details <ArrowUpRight className="h-3 w-3" />
             </div>
           </Link>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Pipeline Overview */}
-        <div className="rounded-xl bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold text-gray-900">
-            Pipeline Overview
-          </h2>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+        {/* Pipeline Overview — wider */}
+        <div
+          className="animate-fade-up delay-500 lg:col-span-3 rounded-2xl p-6"
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border-light)",
+          }}
+        >
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h2
+                className="text-lg font-medium"
+                style={{
+                  fontFamily: "var(--font-display)",
+                  color: "var(--text-primary)",
+                }}
+              >
+                Pipeline
+              </h2>
+              <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
+                Lead distribution across stages
+              </p>
+            </div>
+            <Link
+              href="/leads"
+              className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors"
+              style={{
+                color: "var(--accent)",
+                background: "rgba(200,150,62,0.06)",
+              }}
+            >
+              View all <ArrowUpRight className="h-3 w-3" />
+            </Link>
+          </div>
+
           <div className="space-y-3">
             {pipelineStages
               .sort((a: any, b: any) => a.order - b.order)
               .map((stage: any) => {
                 const count = stats?.leadsByStage?.[stage.id] ?? 0;
                 const maxCount = Math.max(
-                  ...(Object.values(stats?.leadsByStage ?? { _: 1 }) as number[])
+                  ...(Object.values(stats?.leadsByStage ?? { _: 1 }) as number[]),
+                  1
                 );
-                const width =
-                  maxCount > 0 ? Math.max((count / maxCount) * 100, 4) : 4;
+                const width = Math.max((count / maxCount) * 100, 3);
 
                 return (
-                  <div key={stage.id} className="flex items-center gap-3">
-                    <span className="w-24 text-sm text-gray-600 truncate">
+                  <div key={stage.id} className="group flex items-center gap-4">
+                    <span
+                      className="w-20 truncate text-xs font-medium"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
                       {stage.name}
                     </span>
                     <div className="flex-1">
-                      <div className="h-6 rounded-full bg-gray-100">
+                      <div
+                        className="h-7 overflow-hidden rounded-lg"
+                        style={{ background: "var(--border-light)" }}
+                      >
                         <div
-                          className="flex h-6 items-center rounded-full px-2 text-xs font-medium text-white transition-all"
+                          className="flex h-7 items-center rounded-lg px-3 text-[11px] font-semibold text-white transition-all duration-500"
                           style={{
                             width: `${width}%`,
-                            backgroundColor: stage.color,
+                            background: `linear-gradient(135deg, ${stage.color}, ${stage.color}dd)`,
                           }}
                         >
-                          {count}
+                          {count > 0 ? count : ""}
                         </div>
                       </div>
                     </div>
+                    <span
+                      className="w-6 text-right text-xs font-medium tabular-nums"
+                      style={{ color: "var(--text-muted)" }}
+                    >
+                      {count}
+                    </span>
                   </div>
                 );
               })}
           </div>
         </div>
 
-        {/* Recent Leads */}
-        <div className="rounded-xl bg-white p-6 shadow-sm">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">
+        {/* Recent Leads — narrower */}
+        <div
+          className="animate-fade-up delay-600 lg:col-span-2 rounded-2xl p-6"
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border-light)",
+          }}
+        >
+          <div className="mb-5 flex items-center justify-between">
+            <h2
+              className="text-lg font-medium"
+              style={{
+                fontFamily: "var(--font-display)",
+                color: "var(--text-primary)",
+              }}
+            >
               Recent Leads
             </h2>
             <Link
               href="/leads"
-              className="text-sm text-indigo-600 hover:text-indigo-700"
+              className="text-xs font-medium"
+              style={{ color: "var(--accent)" }}
             >
               View all
             </Link>
           </div>
+
           {recentLeads && recentLeads.length > 0 ? (
-            <div className="space-y-3">
-              {recentLeads.map((lead: any) => (
-                <Link
-                  key={lead._id}
-                  href={`/leads/${lead._id}`}
-                  className="flex items-center justify-between rounded-lg p-3 hover:bg-gray-50"
-                >
-                  <div>
-                    <p className="font-medium text-gray-900">{lead.name}</p>
-                    <p className="text-sm text-gray-500">
-                      {lead.source} &middot; {lead.pipelineStage}
-                    </p>
-                  </div>
-                  <span
-                    className={`rounded-full px-2 py-1 text-xs font-medium ${
-                      lead.priority === "urgent"
-                        ? "bg-red-100 text-red-700"
-                        : lead.priority === "high"
-                          ? "bg-amber-100 text-amber-700"
-                          : "bg-gray-100 text-gray-600"
-                    }`}
+            <div className="space-y-1">
+              {recentLeads.map((lead: any) => {
+                const stageConfig = pipelineStages.find(
+                  (s: any) => s.id === lead.pipelineStage
+                );
+                return (
+                  <Link
+                    key={lead._id}
+                    href={`/leads/${lead._id}`}
+                    className="group flex items-center gap-3 rounded-xl px-3 py-3 transition-colors"
+                    style={{ background: "transparent" }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "var(--surface-warm)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "transparent";
+                    }}
                   >
-                    {lead.priority}
-                  </span>
-                </Link>
-              ))}
+                    {/* Avatar */}
+                    <div
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+                      style={{
+                        background: "var(--accent-light)",
+                        color: "var(--accent)",
+                      }}
+                    >
+                      {lead.name?.charAt(0)?.toUpperCase() ?? "?"}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className="truncate text-sm font-medium"
+                        style={{ color: "var(--text-primary)" }}
+                      >
+                        {lead.name}
+                      </p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span
+                          className="text-[11px]"
+                          style={{ color: "var(--text-muted)" }}
+                        >
+                          {lead.source}
+                        </span>
+                        {stageConfig && (
+                          <>
+                            <span
+                              className="h-1 w-1 rounded-full"
+                              style={{ background: stageConfig.color }}
+                            />
+                            <span
+                              className="text-[11px]"
+                              style={{ color: stageConfig.color }}
+                            >
+                              {stageConfig.name}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <ArrowUpRight
+                      className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100"
+                      style={{ color: "var(--text-muted)" }}
+                    />
+                  </Link>
+                );
+              })}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-8 text-gray-400">
-              <Users className="mb-2 h-8 w-8" />
+            <div className="flex flex-col items-center py-10" style={{ color: "var(--text-muted)" }}>
+              <Users className="mb-3 h-8 w-8" style={{ opacity: 0.4 }} />
               <p className="text-sm">No leads yet</p>
               <Link
                 href="/leads"
-                className="mt-2 text-sm text-indigo-600 hover:text-indigo-700"
+                className="mt-2 text-xs font-medium"
+                style={{ color: "var(--accent)" }}
               >
                 Create your first lead
               </Link>
@@ -185,40 +338,108 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent Activity */}
-      <div className="rounded-xl bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">
-          Recent Activity
-        </h2>
+      <div
+        className="animate-fade-up delay-700 rounded-2xl p-6"
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border-light)",
+        }}
+      >
+        <div className="mb-5 flex items-center gap-2">
+          <h2
+            className="text-lg font-medium"
+            style={{
+              fontFamily: "var(--font-display)",
+              color: "var(--text-primary)",
+            }}
+          >
+            Activity
+          </h2>
+          <span
+            className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+            style={{
+              color: "var(--accent)",
+              background: "rgba(200,150,62,0.08)",
+            }}
+          >
+            Recent
+          </span>
+        </div>
+
         {stats?.recentActivities && stats.recentActivities.length > 0 ? (
-          <div className="space-y-3">
-            {stats.recentActivities.map((activity: any) => (
-              <div
-                key={activity._id}
-                className="flex items-start gap-3 border-l-2 border-gray-200 pl-4"
-              >
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">
-                    {activity.title}
-                  </p>
-                  {activity.description && (
-                    <p className="text-sm text-gray-500">
-                      {activity.description}
-                    </p>
+          <div className="space-y-0">
+            {stats.recentActivities.map((activity: any, i: number) => {
+              const typeColors: Record<string, string> = {
+                note: "var(--accent)",
+                stage_change: "#6366f1",
+                invoice_created: "var(--warning)",
+                invoice_paid: "var(--success)",
+                task_created: "var(--danger)",
+                task_completed: "var(--success)",
+              };
+              const dotColor = typeColors[activity.type] ?? "var(--text-muted)";
+
+              return (
+                <div
+                  key={activity._id}
+                  className="relative flex items-start gap-4 py-3"
+                >
+                  {/* Timeline line */}
+                  {i < stats.recentActivities.length - 1 && (
+                    <div
+                      className="absolute left-[7px] top-8 bottom-0 w-px"
+                      style={{ background: "var(--border-light)" }}
+                    />
                   )}
-                  <p className="mt-1 text-xs text-gray-400">
-                    <Clock className="mr-1 inline-block h-3 w-3" />
-                    {new Date(activity._creationTime).toLocaleString()}
-                  </p>
+                  {/* Dot */}
+                  <div
+                    className="mt-1.5 h-[9px] w-[9px] shrink-0 rounded-full ring-2"
+                    style={{
+                      background: dotColor,
+                      boxShadow: "0 0 0 2px var(--surface)",
+                    }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className="text-sm font-medium"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      {activity.title}
+                    </p>
+                    {activity.description && (
+                      <p
+                        className="mt-0.5 text-xs"
+                        style={{ color: "var(--text-muted)" }}
+                      >
+                        {activity.description}
+                      </p>
+                    )}
+                  </div>
+                  <div className="shrink-0 flex items-center gap-2">
+                    <span
+                      className="rounded-md px-2 py-0.5 text-[10px] font-medium"
+                      style={{
+                        background: "var(--border-light)",
+                        color: "var(--text-muted)",
+                      }}
+                    >
+                      {activity.type.replace(/_/g, " ")}
+                    </span>
+                    <span
+                      className="flex items-center gap-1 text-[11px] whitespace-nowrap"
+                      style={{ color: "var(--text-muted)" }}
+                    >
+                      <Clock className="h-3 w-3" />
+                      {formatRelativeTime(activity._creationTime)}
+                    </span>
+                  </div>
                 </div>
-                <span className="shrink-0 rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600">
-                  {activity.type}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
-          <p className="py-4 text-center text-sm text-gray-400">
-            No activity yet
+          <p className="py-8 text-center text-sm" style={{ color: "var(--text-muted)" }}>
+            No activity yet. Start by creating a lead or sending a message.
           </p>
         )}
       </div>
@@ -226,14 +447,35 @@ export default function DashboardPage() {
   );
 }
 
+function formatRelativeTime(timestamp: number) {
+  const diff = Date.now() - timestamp;
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
 function DashboardSkeleton() {
   return (
-    <div className="space-y-6">
-      <div className="h-8 w-40 animate-pulse rounded bg-gray-200" />
+    <div className="space-y-8">
+      <div>
+        <div className="skeleton h-9 w-56 rounded-lg" />
+        <div className="skeleton mt-2 h-4 w-72 rounded-lg" />
+      </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-28 animate-pulse rounded-xl bg-white" />
+          <div
+            key={i}
+            className="skeleton h-32 rounded-2xl"
+          />
         ))}
+      </div>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+        <div className="skeleton lg:col-span-3 h-72 rounded-2xl" />
+        <div className="skeleton lg:col-span-2 h-72 rounded-2xl" />
       </div>
     </div>
   );
