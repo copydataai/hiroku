@@ -15,7 +15,7 @@ import {
   ChevronDown,
   Sparkles,
 } from "lucide-react";
-import { UserButton } from "@clerk/nextjs";
+import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
 import { useState } from "react";
 
 const navItems = [
@@ -36,11 +36,7 @@ const settingsItems = [
   { href: "/settings/billing", label: "Billing" },
 ];
 
-export default function Sidebar({
-  restaurantName,
-}: {
-  restaurantName: string;
-}) {
+export default function Sidebar() {
   const pathname = usePathname();
   const [settingsOpen, setSettingsOpen] = useState(
     pathname.startsWith("/settings")
@@ -54,31 +50,23 @@ export default function Sidebar({
         borderRight: "1px solid var(--sidebar-border)",
       }}
     >
-      {/* Restaurant identity */}
+      {/* Organization switcher */}
       <div
-        className="flex items-center gap-3 px-5 py-5"
+        className="px-4 py-4"
         style={{ borderBottom: "1px solid var(--sidebar-border)" }}
       >
-        <div
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-sm font-semibold text-white"
-          style={{
-            background: "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)",
-            boxShadow: "0 2px 8px rgba(200,150,62,0.3)",
+        <OrganizationSwitcher
+          hidePersonal
+          afterCreateOrganizationUrl="/dashboard"
+          afterSelectOrganizationUrl="/dashboard"
+          appearance={{
+            elements: {
+              rootBox: "w-full",
+              organizationSwitcherTrigger:
+                "w-full rounded-lg px-2 py-2 text-sm justify-start gap-2",
+            },
           }}
-        >
-          {restaurantName.charAt(0).toUpperCase()}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p
-            className="truncate text-sm font-semibold"
-            style={{ color: "var(--sidebar-text-active)" }}
-          >
-            {restaurantName}
-          </p>
-          <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>
-            Restaurant
-          </p>
-        </div>
+        />
       </div>
 
       {/* Main nav */}

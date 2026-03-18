@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useOrganization, useOrganizationList } from "@clerk/nextjs";
 import Sidebar from "@/components/dashboard/Sidebar";
 import Topbar from "@/components/dashboard/Topbar";
 import { useState } from "react";
@@ -11,25 +12,34 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const { organization, isLoaded: orgLoaded } = useOrganization();
   const restaurant = useQuery(api.restaurants.get, {});
 
-  // Loading
-  if (restaurant === undefined) {
+  // Still loading Clerk org or Convex
+  if (!orgLoaded || restaurant === undefined) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gray-50">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
+      <div className="flex h-screen items-center justify-center" style={{ background: "var(--background)" }}>
+        <div
+          className="h-8 w-8 animate-spin rounded-full border-4"
+          style={{ borderColor: "var(--border-light)", borderTopColor: "var(--accent)" }}
+        />
       </div>
     );
   }
 
-  // No restaurant — onboarding
-  if (restaurant === null) {
+  // No organization — show onboarding to create one
+  if (!organization) {
     return <OnboardingForm />;
+  }
+
+  // Org exists but restaurant not yet created (webhook pending or setup needed)
+  if (restaurant === null) {
+    return <SetupForm clerkOrgId={organization.id} orgName={organization.name} />;
   }
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: "var(--background)" }}>
-      <Sidebar restaurantName={restaurant.name} />
+      <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Topbar />
         <main
@@ -43,8 +53,12 @@ export default function DashboardLayout({
   );
 }
 
+/**
+ * Step 1: User has no Clerk Organization — create one + restaurant.
+ */
 function OnboardingForm() {
-  const createRestaurant = useMutation(api.restaurants.create);
+  const { createOrganization, setActive } = useOrganizationList();
+  const setupRestaurant = useMutation(api.restaurants.setupFromOrg);
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [currency, setCurrency] = useState("USD");
@@ -53,12 +67,24 @@ function OnboardingForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !slug) return;
+    if (!name || !slug || !createOrganization || !setActive) return;
 
     setLoading(true);
     setError("");
     try {
-      await createRestaurant({ name, slug, currency });
+      // Create the Clerk organization
+      const org = await createOrganization({ name });
+
+      // Set it as the active org (updates JWT with org_id)
+      await setActive({ organization: org });
+
+      // Create the restaurant record in Convex
+      await setupRestaurant({
+        clerkOrgId: org.id,
+        name,
+        slug,
+        currency,
+      });
     } catch (err: any) {
       setError(err.message ?? "Failed to create restaurant");
     } finally {
@@ -67,18 +93,24 @@ function OnboardingForm() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg">
-        <h1 className="mb-2 text-2xl font-bold text-gray-900">
+    <div className="flex min-h-screen items-center justify-center" style={{ background: "var(--background)" }}>
+      <div
+        className="w-full max-w-md rounded-2xl p-8"
+        style={{ background: "var(--surface)", border: "1px solid var(--border-light)" }}
+      >
+        <h1
+          className="mb-2 text-2xl tracking-tight"
+          style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)" }}
+        >
           Create your restaurant
         </h1>
-        <p className="mb-6 text-sm text-gray-500">
+        <p className="mb-6 text-sm" style={{ color: "var(--text-secondary)" }}>
           Set up your restaurant to start managing leads, menus, and orders.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium" style={{ color: "var(--text-secondary)" }}>
               Restaurant Name
             </label>
             <input
@@ -94,17 +126,32 @@ function OnboardingForm() {
                 );
               }}
               placeholder="My Restaurant"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              className="w-full rounded-xl px-3 py-2 text-sm outline-none transition-colors"
+              style={{ background: "var(--surface)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = "var(--accent)";
+                e.currentTarget.style.boxShadow = "0 0 0 2px rgba(200,150,62,0.1)";
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = "var(--border-light)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
               required
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium" style={{ color: "var(--text-secondary)" }}>
               URL Slug
             </label>
-            <div className="flex items-center rounded-lg border border-gray-300 text-sm">
-              <span className="border-r bg-gray-50 px-3 py-2 text-gray-500">
+            <div
+              className="flex items-center rounded-xl text-sm overflow-hidden"
+              style={{ border: "1px solid var(--border-light)" }}
+            >
+              <span
+                className="px-3 py-2"
+                style={{ background: "var(--surface-warm)", color: "var(--text-muted)", borderRight: "1px solid var(--border-light)" }}
+              >
                 /menu/
               </span>
               <input
@@ -113,19 +160,21 @@ function OnboardingForm() {
                 onChange={(e) => setSlug(e.target.value)}
                 placeholder="my-restaurant"
                 className="flex-1 px-3 py-2 outline-none"
+                style={{ background: "var(--surface)", color: "var(--text-primary)" }}
                 required
               />
             </div>
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium" style={{ color: "var(--text-secondary)" }}>
               Currency
             </label>
             <select
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              className="w-full rounded-xl px-3 py-2 text-sm outline-none"
+              style={{ background: "var(--surface)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }}
             >
               <option value="USD">USD ($)</option>
               <option value="EUR">EUR (&euro;)</option>
@@ -136,15 +185,128 @@ function OnboardingForm() {
           </div>
 
           {error && (
-            <p className="text-sm text-red-600">{error}</p>
+            <p className="text-sm" style={{ color: "var(--danger)" }}>{error}</p>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-indigo-600 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+            className="w-full rounded-xl py-2.5 text-sm font-medium text-white transition-opacity disabled:opacity-50"
+            style={{ background: "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)" }}
           >
             {loading ? "Creating..." : "Create Restaurant"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Step 2: Org exists but restaurant record is missing.
+ * This handles the case where the webhook created the org but setup wasn't completed.
+ */
+function SetupForm({ clerkOrgId, orgName }: { clerkOrgId: string; orgName: string }) {
+  const setupRestaurant = useMutation(api.restaurants.setupFromOrg);
+  const [slug, setSlug] = useState(
+    orgName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
+  );
+  const [currency, setCurrency] = useState("USD");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!slug) return;
+
+    setLoading(true);
+    setError("");
+    try {
+      await setupRestaurant({
+        clerkOrgId,
+        name: orgName,
+        slug,
+        currency,
+      });
+    } catch (err: any) {
+      setError(err.message ?? "Failed to set up restaurant");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen items-center justify-center" style={{ background: "var(--background)" }}>
+      <div
+        className="w-full max-w-md rounded-2xl p-8"
+        style={{ background: "var(--surface)", border: "1px solid var(--border-light)" }}
+      >
+        <h1
+          className="mb-2 text-2xl tracking-tight"
+          style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)" }}
+        >
+          Complete setup
+        </h1>
+        <p className="mb-6 text-sm" style={{ color: "var(--text-secondary)" }}>
+          Finish setting up <strong>{orgName}</strong> to start using the dashboard.
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="mb-1 block text-sm font-medium" style={{ color: "var(--text-secondary)" }}>
+              URL Slug
+            </label>
+            <div
+              className="flex items-center rounded-xl text-sm overflow-hidden"
+              style={{ border: "1px solid var(--border-light)" }}
+            >
+              <span
+                className="px-3 py-2"
+                style={{ background: "var(--surface-warm)", color: "var(--text-muted)", borderRight: "1px solid var(--border-light)" }}
+              >
+                /menu/
+              </span>
+              <input
+                type="text"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                placeholder="my-restaurant"
+                className="flex-1 px-3 py-2 outline-none"
+                style={{ background: "var(--surface)", color: "var(--text-primary)" }}
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium" style={{ color: "var(--text-secondary)" }}>
+              Currency
+            </label>
+            <select
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              className="w-full rounded-xl px-3 py-2 text-sm outline-none"
+              style={{ background: "var(--surface)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }}
+            >
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (&euro;)</option>
+              <option value="GBP">GBP (&pound;)</option>
+              <option value="MXN">MXN ($)</option>
+              <option value="BRL">BRL (R$)</option>
+            </select>
+          </div>
+
+          {error && (
+            <p className="text-sm" style={{ color: "var(--danger)" }}>{error}</p>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-xl py-2.5 text-sm font-medium text-white transition-opacity disabled:opacity-50"
+            style={{ background: "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)" }}
+          >
+            {loading ? "Setting up..." : "Complete Setup"}
           </button>
         </form>
       </div>
