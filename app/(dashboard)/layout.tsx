@@ -6,6 +6,7 @@ import { useOrganization, useOrganizationList } from "@clerk/nextjs";
 import Sidebar from "@/components/dashboard/Sidebar";
 import Topbar from "@/components/dashboard/Topbar";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function DashboardLayout({
   children,
@@ -14,27 +15,35 @@ export default function DashboardLayout({
 }) {
   const { organization, isLoaded: orgLoaded } = useOrganization();
   const restaurant = useQuery(api.restaurants.get, {});
+  const [setupComplete, setSetupComplete] = useState(false);
+
+  const loadingSpinner = (
+    <div className="flex h-screen items-center justify-center" style={{ background: "var(--background)" }}>
+      <div
+        className="h-8 w-8 animate-spin rounded-full border-4"
+        style={{ borderColor: "var(--border-light)", borderTopColor: "var(--accent)" }}
+      />
+    </div>
+  );
 
   // Still loading Clerk org or Convex
   if (!orgLoaded || restaurant === undefined) {
-    return (
-      <div className="flex h-screen items-center justify-center" style={{ background: "var(--background)" }}>
-        <div
-          className="h-8 w-8 animate-spin rounded-full border-4"
-          style={{ borderColor: "var(--border-light)", borderTopColor: "var(--accent)" }}
-        />
-      </div>
-    );
+    return loadingSpinner;
+  }
+
+  // Just completed setup — wait for Convex to re-authenticate with new JWT
+  if (setupComplete && (restaurant === null || !organization)) {
+    return loadingSpinner;
   }
 
   // No organization — show onboarding to create one
   if (!organization) {
-    return <OnboardingForm />;
+    return <OnboardingForm onComplete={() => setSetupComplete(true)} />;
   }
 
   // Org exists but restaurant not yet created (webhook pending or setup needed)
   if (restaurant === null) {
-    return <SetupForm clerkOrgId={organization.id} orgName={organization.name} />;
+    return <SetupForm clerkOrgId={organization.id} orgName={organization.name} onComplete={() => setSetupComplete(true)} />;
   }
 
   return (
@@ -56,7 +65,7 @@ export default function DashboardLayout({
 /**
  * Step 1: User has no Clerk Organization — create one + restaurant.
  */
-function OnboardingForm() {
+function OnboardingForm({ onComplete }: { onComplete: () => void }) {
   const { createOrganization, setActive } = useOrganizationList();
   const setupRestaurant = useMutation(api.restaurants.setupFromOrg);
   const [name, setName] = useState("");
@@ -85,8 +94,11 @@ function OnboardingForm() {
         slug,
         currency,
       });
+      toast.success("Restaurant created!");
+      onComplete();
     } catch (err: any) {
       setError(err.message ?? "Failed to create restaurant");
+      toast.error(err.message ?? "Failed to create restaurant");
     } finally {
       setLoading(false);
     }
@@ -206,7 +218,7 @@ function OnboardingForm() {
  * Step 2: Org exists but restaurant record is missing.
  * This handles the case where the webhook created the org but setup wasn't completed.
  */
-function SetupForm({ clerkOrgId, orgName }: { clerkOrgId: string; orgName: string }) {
+function SetupForm({ clerkOrgId, orgName, onComplete }: { clerkOrgId: string; orgName: string; onComplete: () => void }) {
   const setupRestaurant = useMutation(api.restaurants.setupFromOrg);
   const [slug, setSlug] = useState(
     orgName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
@@ -228,8 +240,11 @@ function SetupForm({ clerkOrgId, orgName }: { clerkOrgId: string; orgName: strin
         slug,
         currency,
       });
+      toast.success("Setup complete!");
+      onComplete();
     } catch (err: any) {
       setError(err.message ?? "Failed to set up restaurant");
+      toast.error(err.message ?? "Failed to complete setup");
     } finally {
       setLoading(false);
     }

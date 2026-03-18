@@ -3,6 +3,7 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { MessageSquare } from "lucide-react";
 
 export default function WhatsAppSettingsPage() {
@@ -13,7 +14,6 @@ export default function WhatsAppSettingsPage() {
   const [accessToken, setAccessToken] = useState("");
   const [verifyToken, setVerifyToken] = useState("");
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     if (restaurant) {
@@ -35,8 +35,9 @@ export default function WhatsAppSettingsPage() {
         whatsappAccessToken: accessToken || undefined,
         whatsappVerifyToken: verifyToken || undefined,
       });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      toast.success("WhatsApp settings saved");
+    } catch {
+      toast.error("Failed to save");
     } finally {
       setSaving(false);
     }
@@ -205,11 +206,6 @@ export default function WhatsAppSettingsPage() {
             >
               {saving ? "Saving..." : "Save Settings"}
             </button>
-            {saved && (
-              <span className="text-sm" style={{ color: "var(--success)" }}>
-                Saved!
-              </span>
-            )}
           </div>
         </form>
       </div>

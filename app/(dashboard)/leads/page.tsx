@@ -4,7 +4,8 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useState } from "react";
 import Link from "next/link";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search, Filter, Users } from "lucide-react";
+import { toast } from "sonner";
 
 export default function LeadsPage() {
   const restaurant = useQuery(api.restaurants.get, {});
@@ -175,12 +176,23 @@ export default function LeadsPage() {
               </tr>
             ) : leads.length === 0 ? (
               <tr>
-                <td
-                  colSpan={6}
-                  className="px-4 py-8 text-center text-sm"
-                  style={{ color: "var(--text-muted)" }}
-                >
-                  No leads found
+                <td colSpan={6} className="px-4 py-12 text-center">
+                  <div className="flex flex-col items-center">
+                    <Users className="mb-3 h-10 w-10" style={{ color: "var(--text-muted)", opacity: 0.4 }} />
+                    <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                      No leads yet
+                    </p>
+                    <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+                      Add your first lead to start tracking customers.
+                    </p>
+                    <button
+                      onClick={() => setShowCreate(true)}
+                      className="mt-4 flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-white transition-all hover:shadow-md"
+                      style={{ background: "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)" }}
+                    >
+                      <Plus className="h-4 w-4" /> Add Lead
+                    </button>
+                  </div>
                 </td>
               </tr>
             ) : (
@@ -296,9 +308,10 @@ function CreateLeadModal({
         source,
         notes: notes || undefined,
       });
+      toast.success("Lead created");
       onClose();
     } catch (err) {
-      console.error(err);
+      toast.error("Failed to create lead");
     } finally {
       setLoading(false);
     }

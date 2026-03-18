@@ -322,15 +322,16 @@ export default function DashboardPage() {
               })}
             </div>
           ) : (
-            <div className="flex flex-col items-center py-10" style={{ color: "var(--text-muted)" }}>
-              <Users className="mb-3 h-8 w-8" style={{ opacity: 0.4 }} />
-              <p className="text-sm">No leads yet</p>
+            <div className="flex flex-col items-center py-10">
+              <Users className="mb-3 h-10 w-10" style={{ color: "var(--text-muted)", opacity: 0.4 }} />
+              <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Your pipeline starts here</p>
+              <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>Add your first lead to start tracking customers.</p>
               <Link
                 href="/leads"
-                className="mt-2 text-xs font-medium"
-                style={{ color: "var(--accent)" }}
+                className="mt-4 flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-white transition-all hover:shadow-md"
+                style={{ background: "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)" }}
               >
-                Create your first lead
+                <Users className="h-4 w-4" /> Add Lead
               </Link>
             </div>
           )}

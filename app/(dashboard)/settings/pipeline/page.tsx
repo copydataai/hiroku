@@ -3,6 +3,7 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Plus, Trash2, GripVertical } from "lucide-react";
 
 type Stage = {
@@ -18,7 +19,6 @@ export default function PipelineSettingsPage() {
 
   const [stages, setStages] = useState<Stage[]>([]);
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     if (restaurant?.pipelineStages) {
@@ -66,8 +66,9 @@ export default function PipelineSettingsPage() {
         restaurantId: restaurant._id,
         pipelineStages: stages,
       });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      toast.success("Pipeline saved");
+    } catch {
+      toast.error("Failed to save");
     } finally {
       setSaving(false);
     }
@@ -241,11 +242,6 @@ export default function PipelineSettingsPage() {
           >
             {saving ? "Saving..." : "Save Pipeline"}
           </button>
-          {saved && (
-            <span className="text-sm" style={{ color: "var(--success)" }}>
-              Saved!
-            </span>
-          )}
         </div>
       </div>
     </div>

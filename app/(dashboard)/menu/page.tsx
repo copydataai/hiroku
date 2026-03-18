@@ -13,6 +13,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function MenuPage() {
   const restaurant = useQuery(api.restaurants.get, {});
@@ -29,9 +30,12 @@ export default function MenuPage() {
 
   const handleCreateMenu = async () => {
     if (!newMenuName.trim()) return;
-    await createMenu({ restaurantId: restaurant._id, name: newMenuName });
-    setNewMenuName("");
-    setShowAddMenu(false);
+    try {
+      await createMenu({ restaurantId: restaurant._id, name: newMenuName });
+      toast.success("Menu created");
+      setNewMenuName("");
+      setShowAddMenu(false);
+    } catch { toast.error("Failed to create menu"); }
   };
 
   return (
@@ -136,15 +140,22 @@ export default function MenuPage() {
         </div>
       ) : menus.length === 0 ? (
         <div
-          className="rounded-2xl py-12 text-center"
+          className="flex flex-col items-center rounded-2xl py-12"
           style={{
             background: "var(--surface)",
             border: "1px solid var(--border-light)",
           }}
         >
-          <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-            No menus yet. Create your first menu above.
-          </p>
+          <Edit2 className="mb-3 h-10 w-10" style={{ color: "var(--text-muted)", opacity: 0.4 }} />
+          <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Build your first menu</p>
+          <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>Create a menu to organize your dishes and prices.</p>
+          <button
+            onClick={() => setShowAddMenu(true)}
+            className="mt-4 flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-white transition-all hover:shadow-md"
+            style={{ background: "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)" }}
+          >
+            <Plus className="h-4 w-4" /> Create Menu
+          </button>
         </div>
       ) : (
         <div className="space-y-4">
@@ -179,11 +190,16 @@ function MenuSection({
   const [newCatName, setNewCatName] = useState("");
   const [showAddCat, setShowAddCat] = useState(false);
 
+  const [confirmDeleteMenu, setConfirmDeleteMenu] = useState(false);
+
   const handleAddCategory = async () => {
     if (!newCatName.trim()) return;
-    await createCategory({ menuId: menu._id, name: newCatName });
-    setNewCatName("");
-    setShowAddCat(false);
+    try {
+      await createCategory({ menuId: menu._id, name: newCatName });
+      toast.success("Category added");
+      setNewCatName("");
+      setShowAddCat(false);
+    } catch { toast.error("Failed to add category"); }
   };
 
   return (
@@ -246,23 +262,37 @@ function MenuSection({
             <Plus className="inline h-4 w-4" /> Category
           </button>
           <button
-            onClick={() => {
-              if (confirm("Delete this menu and all its items?")) {
-                removeMenu({ menuId: menu._id });
+            onClick={async () => {
+              if (!confirmDeleteMenu) {
+                setConfirmDeleteMenu(true);
+                setTimeout(() => setConfirmDeleteMenu(false), 3000);
+                return;
+              }
+              try {
+                await removeMenu({ menuId: menu._id });
+                toast.success("Menu deleted");
+              } catch { toast.error("Failed to delete menu"); }
+              setConfirmDeleteMenu(false);
+            }}
+            className="rounded-xl px-2 py-1.5 text-xs font-medium transition-colors"
+            style={confirmDeleteMenu
+              ? { background: "var(--danger)", color: "#fff" }
+              : { color: "var(--text-muted)" }
+            }
+            onMouseEnter={(e) => {
+              if (!confirmDeleteMenu) {
+                e.currentTarget.style.background = "var(--danger-light)";
+                e.currentTarget.style.color = "var(--danger)";
               }
             }}
-            className="rounded-xl p-1.5 transition-colors"
-            style={{ color: "var(--text-muted)" }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "var(--danger-light, rgba(220,38,38,0.08))";
-              e.currentTarget.style.color = "var(--danger)";
-            }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = "transparent";
-              e.currentTarget.style.color = "var(--text-muted)";
+              if (!confirmDeleteMenu) {
+                e.currentTarget.style.background = "transparent";
+                e.currentTarget.style.color = "var(--text-muted)";
+              }
             }}
           >
-            <Trash2 className="h-4 w-4" />
+            {confirmDeleteMenu ? "Confirm?" : <Trash2 className="h-4 w-4" />}
           </button>
         </div>
       </div>
@@ -341,6 +371,8 @@ function CategorySection({ category }: { category: any }) {
   const removeCategory = useMutation(api.menus.removeCategory);
 
   const [showAddItem, setShowAddItem] = useState(false);
+  const [confirmDeleteCat, setConfirmDeleteCat] = useState(false);
+  const [confirmDeleteItemId, setConfirmDeleteItemId] = useState<string | null>(null);
   const [newItem, setNewItem] = useState({
     name: "",
     price: "",
@@ -349,14 +381,17 @@ function CategorySection({ category }: { category: any }) {
 
   const handleAddItem = async () => {
     if (!newItem.name || !newItem.price) return;
-    await createItem({
-      categoryId: category._id,
-      name: newItem.name,
-      price: parseFloat(newItem.price),
-      description: newItem.description || undefined,
-    });
-    setNewItem({ name: "", price: "", description: "" });
-    setShowAddItem(false);
+    try {
+      await createItem({
+        categoryId: category._id,
+        name: newItem.name,
+        price: parseFloat(newItem.price),
+        description: newItem.description || undefined,
+      });
+      toast.success("Item added");
+      setNewItem({ name: "", price: "", description: "" });
+      setShowAddItem(false);
+    } catch { toast.error("Failed to add item"); }
   };
 
   return (
@@ -383,21 +418,25 @@ function CategorySection({ category }: { category: any }) {
             <Plus className="inline h-4 w-4" /> Item
           </button>
           <button
-            onClick={() => {
-              if (confirm("Delete this category and all its items?")) {
-                removeCategory({ categoryId: category._id });
+            onClick={async () => {
+              if (!confirmDeleteCat) {
+                setConfirmDeleteCat(true);
+                setTimeout(() => setConfirmDeleteCat(false), 3000);
+                return;
               }
+              try {
+                await removeCategory({ categoryId: category._id });
+                toast.success("Category deleted");
+              } catch { toast.error("Failed to delete"); }
+              setConfirmDeleteCat(false);
             }}
-            className="transition-colors"
-            style={{ color: "var(--text-muted)" }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = "var(--danger)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = "var(--text-muted)";
-            }}
+            className="rounded-lg px-1.5 py-0.5 text-xs font-medium transition-colors"
+            style={confirmDeleteCat
+              ? { background: "var(--danger)", color: "#fff" }
+              : { color: "var(--text-muted)" }
+            }
           >
-            <Trash2 className="h-4 w-4" />
+            {confirmDeleteCat ? "Confirm?" : <Trash2 className="h-4 w-4" />}
           </button>
         </div>
       </div>
@@ -504,17 +543,25 @@ function CategorySection({ category }: { category: any }) {
                 Available
               </label>
               <button
-                onClick={() => removeItem({ itemId: item._id })}
-                className="transition-colors"
-                style={{ color: "var(--text-muted)" }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = "var(--danger)";
+                onClick={async () => {
+                  if (confirmDeleteItemId !== item._id) {
+                    setConfirmDeleteItemId(item._id);
+                    setTimeout(() => setConfirmDeleteItemId(null), 3000);
+                    return;
+                  }
+                  try {
+                    await removeItem({ itemId: item._id });
+                    toast.success("Item deleted");
+                  } catch { toast.error("Failed to delete item"); }
+                  setConfirmDeleteItemId(null);
                 }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = "var(--text-muted)";
-                }}
+                className="rounded-lg px-1.5 py-0.5 text-xs font-medium transition-colors"
+                style={confirmDeleteItemId === item._id
+                  ? { background: "var(--danger)", color: "#fff" }
+                  : { color: "var(--text-muted)" }
+                }
               >
-                <Trash2 className="h-4 w-4" />
+                {confirmDeleteItemId === item._id ? "Confirm?" : <Trash2 className="h-4 w-4" />}
               </button>
             </div>
           </div>

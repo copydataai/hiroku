@@ -5,6 +5,7 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { useState, useEffect } from "react";
 import { MessageSquare, Send, Search } from "lucide-react";
+import { toast } from "sonner";
 
 export default function ConversationsPage() {
   const restaurant = useQuery(api.restaurants.get, {});
@@ -52,12 +53,10 @@ export default function ConversationsPage() {
               Loading...
             </p>
           ) : conversations.length === 0 ? (
-            <div
-              className="flex flex-col items-center py-12"
-              style={{ color: "var(--text-muted)" }}
-            >
-              <MessageSquare className="mb-2 h-8 w-8" style={{ opacity: 0.4 }} />
-              <p className="text-sm">No conversations yet</p>
+            <div className="flex flex-col items-center py-12">
+              <MessageSquare className="mb-3 h-10 w-10" style={{ color: "var(--text-muted)", opacity: 0.4 }} />
+              <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Conversations will appear here</p>
+              <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>When customers message via WhatsApp, conversations show up automatically.</p>
             </div>
           ) : (
             conversations.map((conv: any, index: number) => (
@@ -184,8 +183,12 @@ function MessageThread({
 
   const handleSend = async () => {
     if (!input.trim()) return;
-    await sendMessage({ conversationId, content: input });
-    setInput("");
+    try {
+      await sendMessage({ conversationId, content: input });
+      setInput("");
+    } catch {
+      toast.error("Failed to send message");
+    }
   };
 
   return (

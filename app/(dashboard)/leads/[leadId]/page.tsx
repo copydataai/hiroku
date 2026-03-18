@@ -7,7 +7,7 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 import {
-  ArrowLeft,
+  ChevronRight,
   Phone,
   Mail,
   Clock,
@@ -17,6 +17,7 @@ import {
   Tag,
   Plus,
 } from "lucide-react";
+import { toast } from "sonner";
 
 type Tab = "activity" | "conversations" | "invoices" | "tasks";
 
@@ -64,12 +65,17 @@ export default function LeadDetailPage() {
 
   const handleAddNote = async () => {
     if (!noteText.trim()) return;
-    await addActivity({
-      leadId: lead._id,
-      type: "note",
-      title: noteText,
-    });
-    setNoteText("");
+    try {
+      await addActivity({
+        leadId: lead._id,
+        type: "note",
+        title: noteText,
+      });
+      toast.success("Note added");
+      setNoteText("");
+    } catch {
+      toast.error("Failed to add note");
+    }
   };
 
   const tabs: { id: Tab; label: string; icon: any }[] = [
@@ -81,23 +87,17 @@ export default function LeadDetailPage() {
 
   return (
     <div className="space-y-6 animate-fade-up">
+      {/* Breadcrumb */}
+      <nav className="flex items-center gap-1.5 text-sm" style={{ color: "var(--text-muted)" }}>
+        <Link href="/leads" className="transition-colors hover:underline" style={{ color: "var(--text-muted)" }}>
+          Leads
+        </Link>
+        <ChevronRight className="h-3.5 w-3.5" />
+        <span style={{ color: "var(--text-primary)" }}>{lead.name}</span>
+      </nav>
+
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Link
-          href="/leads"
-          className="rounded-xl p-2 transition-colors"
-          style={{ color: "var(--text-muted)" }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "var(--surface-warm)";
-            e.currentTarget.style.color = "var(--text-secondary)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "transparent";
-            e.currentTarget.style.color = "var(--text-muted)";
-          }}
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
         <div className="flex-1">
           <h1
             className="text-2xl tracking-tight font-semibold"
@@ -148,12 +148,12 @@ export default function LeadDetailPage() {
                 <dd>
                   <select
                     value={lead.pipelineStage}
-                    onChange={(e) =>
-                      updateStage({
-                        leadId: lead._id,
-                        pipelineStage: e.target.value,
-                      })
-                    }
+                    onChange={async (e) => {
+                      try {
+                        await updateStage({ leadId: lead._id, pipelineStage: e.target.value });
+                        toast.success("Stage updated");
+                      } catch { toast.error("Failed to update stage"); }
+                    }}
                     className="rounded-xl px-2 py-1 text-sm outline-none transition-colors"
                     style={{
                       background: "var(--surface)",
@@ -176,12 +176,12 @@ export default function LeadDetailPage() {
                 <dd>
                   <select
                     value={lead.priority}
-                    onChange={(e) =>
-                      updateLead({
-                        leadId: lead._id,
-                        priority: e.target.value as any,
-                      })
-                    }
+                    onChange={async (e) => {
+                      try {
+                        await updateLead({ leadId: lead._id, priority: e.target.value as any });
+                        toast.success("Priority updated");
+                      } catch { toast.error("Failed to update"); }
+                    }}
                     className="rounded-xl px-2 py-1 text-sm outline-none transition-colors"
                     style={{
                       background: "var(--surface)",
@@ -370,12 +370,11 @@ export default function LeadDetailPage() {
                     </div>
                   ))}
                   {(!activities || activities.length === 0) && (
-                    <p
-                      className="py-8 text-center text-sm"
-                      style={{ color: "var(--text-muted)" }}
-                    >
-                      No activity yet
-                    </p>
+                    <div className="flex flex-col items-center py-8">
+                      <Clock className="mb-2 h-8 w-8" style={{ color: "var(--text-muted)", opacity: 0.4 }} />
+                      <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Start the conversation</p>
+                      <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>Add a note to begin tracking activity.</p>
+                    </div>
                   )}
                 </div>
               )}
@@ -441,12 +440,18 @@ export default function LeadDetailPage() {
                       ))}
                     </div>
                   ) : (
-                    <p
-                      className="py-8 text-center text-sm"
-                      style={{ color: "var(--text-muted)" }}
-                    >
-                      No invoices yet
-                    </p>
+                    <div className="flex flex-col items-center py-8">
+                      <FileText className="mb-2 h-8 w-8" style={{ color: "var(--text-muted)", opacity: 0.4 }} />
+                      <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Create an invoice</p>
+                      <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>Bill this lead for services or orders.</p>
+                      <Link
+                        href={`/invoices/new?leadId=${lead._id}`}
+                        className="mt-3 flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-white transition-all hover:shadow-md"
+                        style={{ background: "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)" }}
+                      >
+                        <Plus className="h-4 w-4" /> New Invoice
+                      </Link>
+                    </div>
                   )}
                 </div>
               )}
@@ -502,12 +507,18 @@ export default function LeadDetailPage() {
                       ))}
                     </div>
                   ) : (
-                    <p
-                      className="py-8 text-center text-sm"
-                      style={{ color: "var(--text-muted)" }}
-                    >
-                      No tasks yet
-                    </p>
+                    <div className="flex flex-col items-center py-8">
+                      <CheckSquare className="mb-2 h-8 w-8" style={{ color: "var(--text-muted)", opacity: 0.4 }} />
+                      <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Add a follow-up</p>
+                      <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>Create a task to track next steps.</p>
+                      <Link
+                        href="/tasks"
+                        className="mt-3 flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-white transition-all hover:shadow-md"
+                        style={{ background: "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)" }}
+                      >
+                        <Plus className="h-4 w-4" /> Add Task
+                      </Link>
+                    </div>
                   )}
                 </div>
               )}

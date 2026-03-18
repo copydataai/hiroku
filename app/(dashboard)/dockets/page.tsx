@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useState } from "react";
 import { Printer, Check } from "lucide-react";
+import { toast } from "sonner";
 
 export default function DocketsPage() {
   const restaurant = useQuery(api.restaurants.get, {});
@@ -82,10 +83,11 @@ export default function DocketsPage() {
             }}
           >
             <Printer
-              className="mx-auto mb-2 h-8 w-8"
-              style={{ color: "var(--text-muted)" }}
+              className="mx-auto mb-3 h-10 w-10"
+              style={{ color: "var(--text-muted)", opacity: 0.4 }}
             />
-            <p style={{ color: "var(--text-secondary)" }}>No dockets found</p>
+            <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>No dockets yet</p>
+            <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>Dockets are created automatically from invoices.</p>
           </div>
         ) : (
           dockets.map((docket: any) => (
@@ -182,9 +184,12 @@ export default function DocketsPage() {
                 {docket.status !== "completed" && (
                   <>
                     <button
-                      onClick={() =>
-                        markPrinted({ docketId: docket._id })
-                      }
+                      onClick={async () => {
+                        try {
+                          await markPrinted({ docketId: docket._id });
+                          toast.success("Marked as printed");
+                        } catch { toast.error("Failed to update"); }
+                      }}
                       className="flex items-center gap-1 rounded-xl px-3 py-1.5 text-sm transition-colors"
                       style={{
                         background: "var(--surface)",
@@ -195,9 +200,12 @@ export default function DocketsPage() {
                       <Printer className="h-3 w-3" /> Print
                     </button>
                     <button
-                      onClick={() =>
-                        markCompleted({ docketId: docket._id })
-                      }
+                      onClick={async () => {
+                        try {
+                          await markCompleted({ docketId: docket._id });
+                          toast.success("Marked as completed");
+                        } catch { toast.error("Failed to update"); }
+                      }}
                       className="flex items-center gap-1 rounded-xl px-3 py-1.5 text-sm font-medium transition-colors"
                       style={{
                         background: "var(--success)",

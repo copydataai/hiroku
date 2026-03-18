@@ -5,7 +5,8 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Printer } from "lucide-react";
+import { ChevronRight, Printer } from "lucide-react";
+import { toast } from "sonner";
 
 export default function InvoiceDetailPage() {
   const { invoiceId } = useParams<{ invoiceId: string }>();
@@ -33,26 +34,31 @@ export default function InvoiceDetailPage() {
   }
 
   const handleStatusChange = async (status: string, paymentMethod?: string) => {
-    await updateStatus({
-      invoiceId: invoice._id,
-      status: status as any,
-      ...(paymentMethod ? { paymentMethod: paymentMethod as any } : {}),
-    });
+    try {
+      await updateStatus({
+        invoiceId: invoice._id,
+        status: status as any,
+        ...(paymentMethod ? { paymentMethod: paymentMethod as any } : {}),
+      });
+      toast.success(`Invoice marked as ${status}`);
+    } catch { toast.error("Failed to update invoice"); }
   };
 
   const handlePrintDocket = async () => {
     if (!items) return;
-    await createDocket({
-      restaurantId: restaurant._id,
-      invoiceId: invoice._id,
-      leadId: invoice.leadId,
-      type: "receipt",
-      items: items.map((item: any) => ({
-        name: item.name,
-        quantity: item.quantity,
-      })),
-    });
-    alert("Docket created!");
+    try {
+      await createDocket({
+        restaurantId: restaurant._id,
+        invoiceId: invoice._id,
+        leadId: invoice.leadId,
+        type: "receipt",
+        items: items.map((item: any) => ({
+          name: item.name,
+          quantity: item.quantity,
+        })),
+      });
+      toast.success("Docket created");
+    } catch { toast.error("Failed to create docket"); }
   };
 
   const getStatusStyle = (status: string) => {
@@ -75,21 +81,17 @@ export default function InvoiceDetailPage() {
 
   return (
     <div className="animate-fade-up space-y-6">
+      {/* Breadcrumb */}
+      <nav className="flex items-center gap-1.5 text-sm" style={{ color: "var(--text-muted)" }}>
+        <Link href="/invoices" className="transition-colors hover:underline" style={{ color: "var(--text-muted)" }}>
+          Invoices
+        </Link>
+        <ChevronRight className="h-3.5 w-3.5" />
+        <span style={{ color: "var(--text-primary)" }}>{invoice.invoiceNumber}</span>
+      </nav>
+
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link
-            href="/invoices"
-            className="rounded-xl p-2 transition-colors"
-            style={{ color: "var(--text-muted)" }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.color = "var(--text-primary)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.color = "var(--text-muted)")
-            }
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
           <div>
             <h1
               className="text-2xl tracking-tight"

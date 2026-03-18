@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useState } from "react";
 import { Plus, CheckSquare } from "lucide-react";
+import { toast } from "sonner";
 
 export default function TasksPage() {
   const restaurant = useQuery(api.restaurants.get, {});
@@ -38,15 +39,21 @@ export default function TasksPage() {
         title: newTitle,
         priority: newPriority as any,
       });
+      toast.success("Task created");
       setNewTitle("");
       setShowCreate(false);
+    } catch {
+      toast.error("Failed to create task");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleStatusChange = (taskId: any, status: string) => {
-    updateTask({ taskId, status: status as any });
+  const handleStatusChange = async (taskId: any, status: string) => {
+    try {
+      await updateTask({ taskId, status: status as any });
+      toast.success("Task updated");
+    } catch { toast.error("Failed to update task"); }
   };
 
   const getStatusStyle = (status: string) => {
@@ -243,10 +250,18 @@ export default function TasksPage() {
             }}
           >
             <CheckSquare
-              className="mx-auto mb-2 h-8 w-8"
-              style={{ color: "var(--text-muted)" }}
+              className="mx-auto mb-3 h-10 w-10"
+              style={{ color: "var(--text-muted)", opacity: 0.4 }}
             />
-            <p style={{ color: "var(--text-secondary)" }}>No tasks found</p>
+            <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>No tasks yet</p>
+            <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>Create a task to track follow-ups and to-dos.</p>
+            <button
+              onClick={() => setShowCreate(true)}
+              className="mt-4 flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-white transition-all hover:shadow-md"
+              style={{ background: "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)" }}
+            >
+              <Plus className="h-4 w-4" /> New Task
+            </button>
           </div>
         ) : (
           tasks.map((task: any) => (

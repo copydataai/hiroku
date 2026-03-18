@@ -3,6 +3,7 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 export default function ProfileSettingsPage() {
   const restaurant = useQuery(api.restaurants.get, {});
@@ -14,7 +15,6 @@ export default function ProfileSettingsPage() {
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     if (restaurant) {
@@ -40,8 +40,9 @@ export default function ProfileSettingsPage() {
         email: email || undefined,
         address: address || undefined,
       });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      toast.success("Profile saved");
+    } catch {
+      toast.error("Failed to save");
     } finally {
       setSaving(false);
     }
@@ -215,11 +216,6 @@ export default function ProfileSettingsPage() {
           >
             {saving ? "Saving..." : "Save Changes"}
           </button>
-          {saved && (
-            <span className="text-sm" style={{ color: "var(--success)" }}>
-              Saved!
-            </span>
-          )}
         </div>
       </form>
     </div>

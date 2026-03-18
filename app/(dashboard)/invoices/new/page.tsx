@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, Trash2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 type LineItem = {
   menuItemId?: Id<"menuItems">;
@@ -93,9 +94,10 @@ export default function NewInvoicePage() {
         discountAmount: parseFloat(discount || "0"),
         notes: notes || undefined,
       });
+      toast.success("Invoice created");
       router.push(`/invoices/${invoiceId}`);
     } catch (err) {
-      console.error(err);
+      toast.error("Failed to create invoice");
     } finally {
       setLoading(false);
     }

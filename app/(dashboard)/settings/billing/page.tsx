@@ -3,6 +3,7 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 export default function BillingSettingsPage() {
   const restaurant = useQuery(api.restaurants.get, {});
@@ -11,7 +12,6 @@ export default function BillingSettingsPage() {
   const [currency, setCurrency] = useState("");
   const [taxRate, setTaxRate] = useState("");
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     if (restaurant) {
@@ -31,8 +31,9 @@ export default function BillingSettingsPage() {
         currency,
         defaultTaxRate: parseFloat(taxRate) || 0,
       });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      toast.success("Billing settings saved");
+    } catch {
+      toast.error("Failed to save");
     } finally {
       setSaving(false);
     }
@@ -138,11 +139,6 @@ export default function BillingSettingsPage() {
           >
             {saving ? "Saving..." : "Save Settings"}
           </button>
-          {saved && (
-            <span className="text-sm" style={{ color: "var(--success)" }}>
-              Saved!
-            </span>
-          )}
         </div>
       </form>
     </div>

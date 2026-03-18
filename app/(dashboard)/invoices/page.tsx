@@ -159,13 +159,19 @@ export default function InvoicesPage() {
               </tr>
             ) : invoices.length === 0 ? (
               <tr>
-                <td
-                  colSpan={6}
-                  className="px-5 py-8 text-center"
-                  style={{ color: "var(--text-muted)" }}
-                >
-                  <FileText className="mx-auto mb-2 h-8 w-8" />
-                  <p>No invoices found</p>
+                <td colSpan={6} className="px-5 py-12 text-center">
+                  <div className="flex flex-col items-center">
+                    <FileText className="mb-3 h-10 w-10" style={{ color: "var(--text-muted)", opacity: 0.4 }} />
+                    <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>No invoices yet</p>
+                    <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>Create your first invoice to start billing.</p>
+                    <Link
+                      href="/invoices/new"
+                      className="mt-4 flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-white transition-all hover:shadow-md"
+                      style={{ background: "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)" }}
+                    >
+                      <Plus className="h-4 w-4" /> Create Invoice
+                    </Link>
+                  </div>
                 </td>
               </tr>
             ) : (
