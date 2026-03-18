@@ -2,6 +2,18 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
+  // ── Users ─────────────────────────────────────────────
+  users: defineTable({
+    clerkUserId: v.string(),
+    email: v.string(),
+    name: v.string(),
+    firstName: v.optional(v.string()),
+    lastName: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
+  })
+    .index("by_clerk_user", ["clerkUserId"])
+    .index("by_email", ["email"]),
+
   // ── Core ───────────────────────────────────────────────
   restaurants: defineTable({
     clerkOrgId: v.string(),

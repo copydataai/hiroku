@@ -112,6 +112,32 @@ http.route({
           });
           break;
         }
+
+        case "user.created":
+        case "user.updated": {
+          const email =
+            data.email_addresses?.find(
+              (e: any) => e.id === data.primary_email_address_id
+            )?.email_address ?? "";
+          await ctx.runMutation(internal.clerkWebhooks.upsertUser, {
+            clerkUserId: data.id,
+            email,
+            name:
+              [data.first_name, data.last_name].filter(Boolean).join(" ") ||
+              email,
+            firstName: data.first_name ?? undefined,
+            lastName: data.last_name ?? undefined,
+            imageUrl: data.image_url ?? undefined,
+          });
+          break;
+        }
+
+        case "user.deleted": {
+          await ctx.runMutation(internal.clerkWebhooks.deleteUser, {
+            clerkUserId: data.id,
+          });
+          break;
+        }
       }
     } catch (err) {
       console.error(`Error processing ${eventType}:`, err);

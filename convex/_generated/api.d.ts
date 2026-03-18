@@ -9,6 +9,7 @@
  */
 
 import type * as activities from "../activities.js";
+import type * as clerkWebhooks from "../clerkWebhooks.js";
 import type * as conversations from "../conversations.js";
 import type * as dockets from "../dockets.js";
 import type * as http from "../http.js";
@@ -22,6 +23,7 @@ import type * as restaurants from "../restaurants.js";
 import type * as tags from "../tags.js";
 import type * as tasks from "../tasks.js";
 import type * as teamMembers from "../teamMembers.js";
+import type * as users from "../users.js";
 import type * as whatsapp from "../whatsapp.js";
 
 import type {
@@ -32,6 +34,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   activities: typeof activities;
+  clerkWebhooks: typeof clerkWebhooks;
   conversations: typeof conversations;
   dockets: typeof dockets;
   http: typeof http;
@@ -45,6 +48,7 @@ declare const fullApi: ApiFromModules<{
   tags: typeof tags;
   tasks: typeof tasks;
   teamMembers: typeof teamMembers;
+  users: typeof users;
   whatsapp: typeof whatsapp;
 }>;
 
