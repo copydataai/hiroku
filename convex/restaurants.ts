@@ -12,8 +12,14 @@ const DEFAULT_PIPELINE_STAGES = [
   { id: "lost", name: "Lost", color: "#ef4444", order: 6 },
 ];
 
-export const create = mutation({
+/**
+ * Called from the onboarding form after the Clerk organization is created.
+ * Creates the restaurant record and the owner teamMember.
+ * Idempotent — if the webhook already created the restaurant, this patches it.
+ */
+export const setupFromOrg = mutation({
   args: {
+    clerkOrgId: v.string(),
     name: v.string(),
     slug: v.string(),
     currency: v.optional(v.string()),
@@ -21,34 +27,67 @@ export const create = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
 
-    const existing = await ctx.db
+    // Check slug uniqueness
+    const slugTaken = await ctx.db
       .query("restaurants")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .first();
-    if (existing) throw new Error("Restaurant slug already taken");
+    if (slugTaken && slugTaken.clerkOrgId !== args.clerkOrgId) {
+      throw new Error("Restaurant slug already taken");
+    }
 
-    const restaurantId = await ctx.db.insert("restaurants", {
-      ownerId: userId,
-      slug: args.slug,
-      name: args.name,
-      currency: args.currency ?? "USD",
-      defaultTaxRate: 0,
-      pipelineStages: DEFAULT_PIPELINE_STAGES,
-    });
+    // Idempotent: check if restaurant already exists (webhook may have created it)
+    const existing = await ctx.db
+      .query("restaurants")
+      .withIndex("by_clerk_org", (q) => q.eq("clerkOrgId", args.clerkOrgId))
+      .first();
 
-    const identity = await ctx.auth.getUserIdentity();
-    await ctx.db.insert("teamMembers", {
-      restaurantId,
-      clerkUserId: userId,
-      role: "owner",
-      name: identity?.name ?? "",
-      email: identity?.email ?? "",
-    });
+    let restaurantId;
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        name: args.name,
+        slug: args.slug,
+        currency: args.currency ?? "USD",
+      });
+      restaurantId = existing._id;
+    } else {
+      restaurantId = await ctx.db.insert("restaurants", {
+        clerkOrgId: args.clerkOrgId,
+        slug: args.slug,
+        name: args.name,
+        currency: args.currency ?? "USD",
+        defaultTaxRate: 0,
+        pipelineStages: DEFAULT_PIPELINE_STAGES,
+      });
+    }
+
+    // Ensure the creator is a teamMember with owner role
+    const existingMember = await ctx.db
+      .query("teamMembers")
+      .withIndex("by_clerk_org_and_user", (q) =>
+        q.eq("clerkOrgId", args.clerkOrgId).eq("clerkUserId", userId)
+      )
+      .first();
+
+    if (!existingMember) {
+      const identity = await ctx.auth.getUserIdentity();
+      await ctx.db.insert("teamMembers", {
+        restaurantId,
+        clerkOrgId: args.clerkOrgId,
+        clerkUserId: userId,
+        role: "owner",
+        name: identity?.name ?? "",
+        email: identity?.email ?? "",
+      });
+    }
 
     return restaurantId;
   },
 });
 
+/**
+ * Get the restaurant for the current user's active organization.
+ */
 export const get = query({
   args: { restaurantId: v.optional(v.id("restaurants")) },
   handler: async (ctx, args) => {
@@ -59,15 +98,13 @@ export const get = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
 
-    const member = await ctx.db
-      .query("teamMembers")
-      .withIndex("by_clerk_user", (q) =>
-        q.eq("clerkUserId", identity.subject)
-      )
-      .first();
+    const orgId = (identity as any).org_id;
+    if (!orgId) return null;
 
-    if (!member) return null;
-    return await ctx.db.get(member.restaurantId);
+    return await ctx.db
+      .query("restaurants")
+      .withIndex("by_clerk_org", (q) => q.eq("clerkOrgId", orgId))
+      .first();
   },
 });
 

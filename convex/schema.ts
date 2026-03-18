@@ -4,7 +4,7 @@ import { v } from "convex/values";
 export default defineSchema({
   // ── Core ───────────────────────────────────────────────
   restaurants: defineTable({
-    ownerId: v.string(),
+    clerkOrgId: v.string(),
     slug: v.string(),
     name: v.string(),
     description: v.optional(v.string()),
@@ -26,11 +26,12 @@ export default defineSchema({
     ),
     logoStorageId: v.optional(v.id("_storage")),
   })
-    .index("by_owner", ["ownerId"])
+    .index("by_clerk_org", ["clerkOrgId"])
     .index("by_slug", ["slug"]),
 
   teamMembers: defineTable({
     restaurantId: v.id("restaurants"),
+    clerkOrgId: v.string(),
     clerkUserId: v.string(),
     role: v.union(
       v.literal("owner"),
@@ -43,6 +44,8 @@ export default defineSchema({
   })
     .index("by_restaurant", ["restaurantId"])
     .index("by_clerk_user", ["clerkUserId"])
+    .index("by_clerk_org", ["clerkOrgId"])
+    .index("by_clerk_org_and_user", ["clerkOrgId", "clerkUserId"])
     .index("by_restaurant_and_user", ["restaurantId", "clerkUserId"]),
 
   // ── Menu System ────────────────────────────────────────
