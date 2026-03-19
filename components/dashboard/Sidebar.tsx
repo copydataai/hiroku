@@ -36,7 +36,7 @@ const settingsItems = [
   { href: "/settings/billing", label: "Billing" },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
   const pathname = usePathname();
   const [settingsOpen, setSettingsOpen] = useState(
     pathname.startsWith("/settings")
@@ -80,6 +80,7 @@ export default function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={onNavigate}
                 className={clsx(
                   "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-all duration-200",
                   "animate-slide-in-left"
@@ -200,6 +201,7 @@ export default function Sidebar() {
                   <Link
                     key={item.href}
                     href={item.href}
+                    onClick={onNavigate}
                     className="block rounded-md px-3 py-1.5 text-[13px] transition-colors duration-150"
                     style={{
                       color: isActive
