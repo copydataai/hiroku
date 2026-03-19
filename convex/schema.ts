@@ -37,9 +37,11 @@ export default defineSchema({
       })
     ),
     logoStorageId: v.optional(v.id("_storage")),
+    aiAutoRespond: v.optional(v.boolean()),
   })
     .index("by_clerk_org", ["clerkOrgId"])
-    .index("by_slug", ["slug"]),
+    .index("by_slug", ["slug"])
+    .index("by_whatsapp_phone", ["whatsappPhoneNumberId"]),
 
   teamMembers: defineTable({
     restaurantId: v.id("restaurants"),
@@ -295,7 +297,9 @@ export default defineSchema({
     quantity: v.number(),
     unitPrice: v.number(),
     totalPrice: v.number(),
-  }).index("by_invoice", ["invoiceId"]),
+  })
+    .index("by_invoice", ["invoiceId"])
+    .index("by_restaurant", ["restaurantId"]),
 
   dockets: defineTable({
     restaurantId: v.id("restaurants"),
