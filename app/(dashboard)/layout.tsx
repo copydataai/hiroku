@@ -19,6 +19,7 @@ export default function DashboardLayout({
     organization ? { clerkOrgId: organization.id } : {}
   );
   const [setupComplete, setSetupComplete] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const loadingSpinner = (
     <div className="flex h-screen items-center justify-center" style={{ background: "var(--background)" }}>
@@ -48,8 +49,6 @@ export default function DashboardLayout({
   if (restaurant === null) {
     return <SetupForm clerkOrgId={organization.id} orgName={organization.name} onComplete={() => setSetupComplete(true)} />;
   }
-
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: "var(--background)" }}>
