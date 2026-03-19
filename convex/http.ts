@@ -252,19 +252,67 @@ http.route({
         const value = change.value;
         const messages = value?.messages ?? [];
 
+        // Look up restaurant by the WhatsApp phone number ID from the webhook metadata
+        const phoneNumberId = value?.metadata?.phone_number_id;
+        if (!phoneNumberId) {
+          console.error("No phone_number_id in webhook metadata");
+          continue;
+        }
+
+        const restaurant = await ctx.runQuery(
+          internal.whatsapp.getRestaurantByWhatsAppPhone,
+          { whatsappPhoneNumberId: phoneNumberId }
+        );
+        if (!restaurant) {
+          console.error(
+            `No restaurant found for WhatsApp phone number ID: ${phoneNumberId}`
+          );
+          continue;
+        }
+
         for (const message of messages) {
           try {
-            await ctx.runMutation(internal.whatsapp.processIncomingMessage, {
-              restaurantId: message.restaurantId,
-              from: message.from,
-              whatsappMessageId: message.id,
-              messageType: message.type ?? "text",
-              content:
-                message.text?.body ??
-                message.caption ??
-                `[${message.type}]`,
-              timestamp: parseInt(message.timestamp) * 1000,
-            });
+            // Extract media details from the message
+            const mediaObj =
+              message.image ||
+              message.document ||
+              message.audio ||
+              message.video ||
+              message.sticker;
+            const mediaId = mediaObj?.id;
+            const mediaMimeType = mediaObj?.mime_type;
+            const mediaFilename = message.document?.filename;
+            const content =
+              message.text?.body ??
+              mediaObj?.caption ??
+              `[${message.type}]`;
+
+            const result = await ctx.runMutation(
+              internal.whatsapp.processIncomingMessage,
+              {
+                restaurantId: restaurant._id,
+                from: message.from,
+                whatsappMessageId: message.id,
+                messageType: message.type ?? "text",
+                content,
+                timestamp: parseInt(message.timestamp) * 1000,
+                mediaId,
+                mediaMimeType,
+                mediaFilename,
+              }
+            );
+
+            // Trigger AI auto-response for messages with text content
+            if (result && (message.text?.body || mediaObj?.caption)) {
+              await ctx.runAction(internal.whatsapp.handleAutoResponse, {
+                restaurantId: restaurant._id,
+                conversationId: result.conversationId,
+                leadId: result.leadId,
+                customerMessage:
+                  message.text?.body ?? mediaObj?.caption ?? "",
+                customerPhone: message.from,
+              });
+            }
           } catch (e) {
             console.error("Failed to process WhatsApp message:", e);
           }
