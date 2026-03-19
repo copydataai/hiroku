@@ -66,24 +66,23 @@ export async function requireRestaurantAccess(
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Not authenticated");
 
-  const orgId = (identity as any).org_id;
-  if (!orgId) throw new Error("No active organization");
-
   if (restaurantId) {
     const restaurant = await ctx.db.get(restaurantId);
     if (!restaurant) throw new Error("Restaurant not found");
-    if (restaurant.clerkOrgId !== orgId) throw new Error("Access denied");
 
+    // Verify user is a team member of this restaurant
     const member = await ctx.db
       .query("teamMembers")
-      .withIndex("by_clerk_org_and_user", (q) =>
-        q.eq("clerkOrgId", orgId).eq("clerkUserId", identity.subject)
+      .withIndex("by_restaurant_and_user", (q) =>
+        q.eq("restaurantId", restaurantId).eq("clerkUserId", identity.subject)
       )
       .first();
+    if (!member) throw new Error("Access denied");
 
     return { restaurant, member };
   }
 
+  // Fallback: use JWT org_id when no restaurantId provided
   const result = await getUserRestaurant(ctx);
   if (!result) throw new Error("No restaurant access");
   return result;

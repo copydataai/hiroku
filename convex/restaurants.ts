@@ -89,7 +89,10 @@ export const setupFromOrg = mutation({
  * Get the restaurant for the current user's active organization.
  */
 export const get = query({
-  args: { restaurantId: v.optional(v.id("restaurants")) },
+  args: {
+    restaurantId: v.optional(v.id("restaurants")),
+    clerkOrgId: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
     if (args.restaurantId) {
       return await ctx.db.get(args.restaurantId);
@@ -98,7 +101,8 @@ export const get = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
 
-    const orgId = (identity as any).org_id;
+    // Use client-provided clerkOrgId, fall back to JWT org_id
+    const orgId = args.clerkOrgId ?? (identity as any).org_id;
     if (!orgId) return null;
 
     return await ctx.db
@@ -131,6 +135,7 @@ export const update = mutation({
     whatsappPhoneNumberId: v.optional(v.string()),
     whatsappAccessToken: v.optional(v.string()),
     whatsappVerifyToken: v.optional(v.string()),
+    aiAutoRespond: v.optional(v.boolean()),
     pipelineStages: v.optional(
       v.array(
         v.object({
