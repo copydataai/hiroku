@@ -3,7 +3,8 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { useState } from "react";
+import { useRestaurant } from "@/hooks/use-restaurant";
+import { useState, useRef } from "react";
 import {
   Plus,
   ChevronDown,
@@ -11,12 +12,365 @@ import {
   Edit2,
   Trash2,
   ExternalLink,
+  ImageIcon,
+  Check,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
+// ── Image thumbnail component ─────────────────────────────────
+
+function ItemImage({
+  storageId,
+  onUpload,
+}: {
+  storageId?: string;
+  onUpload: (id: string) => void;
+}) {
+  const url = useQuery(
+    api.storage.getUrl,
+    storageId ? { storageId: storageId as Id<"_storage"> } : "skip"
+  );
+  const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const uploadUrl = await generateUploadUrl();
+      const result = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+      const { storageId: newId } = await result.json();
+      onUpload(newId);
+      toast.success("Image uploaded");
+    } catch {
+      toast.error("Failed to upload image");
+    }
+    // Reset the input so the same file can be re-selected
+    if (fileRef.current) fileRef.current.value = "";
+  };
+
+  return (
+    <div className="flex-shrink-0">
+      <input
+        type="file"
+        ref={fileRef}
+        className="hidden"
+        accept="image/*"
+        onChange={handleUpload}
+      />
+      <button
+        type="button"
+        onClick={() => fileRef.current?.click()}
+        className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg transition-colors"
+        style={{
+          background: url ? "transparent" : "var(--surface-warm, rgba(200,150,62,0.06))",
+          border: "1px solid var(--border-light)",
+        }}
+        title="Upload image"
+      >
+        {url ? (
+          <img
+            src={url}
+            alt=""
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <ImageIcon
+            className="h-5 w-5"
+            style={{ color: "var(--text-muted)", opacity: 0.5 }}
+          />
+        )}
+      </button>
+    </div>
+  );
+}
+
+// ── Editable item component ───────────────────────────────────
+
+function EditableItem({
+  item,
+  confirmDeleteItemId,
+  onConfirmDelete,
+}: {
+  item: any;
+  confirmDeleteItemId: string | null;
+  onConfirmDelete: (id: string | null) => void;
+}) {
+  const updateItem = useMutation(api.menus.updateItem);
+  const removeItem = useMutation(api.menus.removeItem);
+  const [editing, setEditing] = useState(false);
+  const [editData, setEditData] = useState({
+    name: item.name,
+    description: item.description || "",
+    price: String(item.price),
+    tags: (item.tags || []).join(", "),
+  });
+
+  const handleSave = async () => {
+    if (!editData.name.trim() || !editData.price.trim()) {
+      toast.error("Name and price are required");
+      return;
+    }
+    try {
+      await updateItem({
+        itemId: item._id,
+        name: editData.name,
+        description: editData.description || undefined,
+        price: parseFloat(editData.price),
+        tags: editData.tags
+          ? editData.tags
+              .split(",")
+              .map((t: string) => t.trim())
+              .filter(Boolean)
+          : [],
+      });
+      toast.success("Item updated");
+      setEditing(false);
+    } catch {
+      toast.error("Failed to update item");
+    }
+  };
+
+  const handleCancel = () => {
+    setEditData({
+      name: item.name,
+      description: item.description || "",
+      price: String(item.price),
+      tags: (item.tags || []).join(", "),
+    });
+    setEditing(false);
+  };
+
+  const handleImageUpload = async (storageId: string) => {
+    try {
+      await updateItem({
+        itemId: item._id,
+        imageStorageId: storageId as Id<"_storage">,
+      });
+    } catch {
+      toast.error("Failed to save image");
+    }
+  };
+
+  const inputStyle = {
+    background: "var(--surface)",
+    border: "1px solid var(--border-light)",
+    color: "var(--text-primary)",
+  };
+
+  if (editing) {
+    return (
+      <div className="flex gap-3 px-4 py-3">
+        <ItemImage
+          storageId={item.imageStorageId}
+          onUpload={handleImageUpload}
+        />
+        <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+          <input
+            type="text"
+            value={editData.name}
+            onChange={(e) =>
+              setEditData({ ...editData, name: e.target.value })
+            }
+            placeholder="Item name"
+            className="flex-1 rounded-lg px-2 py-1 text-sm outline-none"
+            style={inputStyle}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = "var(--accent)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = "var(--border-light)";
+            }}
+            autoFocus
+          />
+          <input
+            type="text"
+            value={editData.description}
+            onChange={(e) =>
+              setEditData({ ...editData, description: e.target.value })
+            }
+            placeholder="Description (optional)"
+            className="flex-1 rounded-lg px-2 py-1 text-sm outline-none"
+            style={inputStyle}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = "var(--accent)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = "var(--border-light)";
+            }}
+          />
+          <input
+            type="number"
+            value={editData.price}
+            onChange={(e) =>
+              setEditData({ ...editData, price: e.target.value })
+            }
+            placeholder="Price"
+            className="w-24 rounded-lg px-2 py-1 text-sm outline-none"
+            style={inputStyle}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = "var(--accent)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = "var(--border-light)";
+            }}
+            step="0.01"
+          />
+          <input
+            type="text"
+            value={editData.tags}
+            onChange={(e) =>
+              setEditData({ ...editData, tags: e.target.value })
+            }
+            placeholder="Tags (comma-separated)"
+            className="flex-1 rounded-lg px-2 py-1 text-sm outline-none"
+            style={inputStyle}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = "var(--accent)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = "var(--border-light)";
+            }}
+          />
+          <div className="flex items-center gap-1">
+            <button
+              onClick={handleSave}
+              className="rounded-lg p-1.5 transition-colors"
+              style={{ color: "var(--accent)" }}
+              title="Save"
+            >
+              <Check className="h-4 w-4" />
+            </button>
+            <button
+              onClick={handleCancel}
+              className="rounded-lg p-1.5 transition-colors"
+              style={{ color: "var(--text-muted)" }}
+              title="Cancel"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-3 px-4 py-3">
+      <ItemImage
+        storageId={item.imageStorageId}
+        onUpload={handleImageUpload}
+      />
+      <div className="flex-1 min-w-0">
+        <p
+          className="font-medium text-sm"
+          style={{ color: "var(--text-primary)" }}
+        >
+          {item.name}
+        </p>
+        {item.description && (
+          <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+            {item.description}
+          </p>
+        )}
+        {item.tags?.length > 0 && (
+          <div className="mt-1 flex flex-wrap gap-1">
+            {item.tags.map((tag: string) => (
+              <span
+                key={tag}
+                className="rounded-full px-2 py-0.5 text-xs"
+                style={{
+                  background: "rgba(200,150,62,0.1)",
+                  color: "var(--accent)",
+                }}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="flex items-center gap-3">
+        <span
+          className="font-medium text-sm"
+          style={{ color: "var(--accent)" }}
+        >
+          ${item.price.toFixed(2)}
+        </span>
+        <label
+          className="flex items-center gap-1 text-xs"
+          style={{ color: "var(--text-muted)" }}
+        >
+          <input
+            type="checkbox"
+            checked={item.isAvailable}
+            onChange={(e) =>
+              updateItem({
+                itemId: item._id,
+                isAvailable: e.target.checked,
+              })
+            }
+            className="accent-[#c8963e]"
+          />
+          Available
+        </label>
+        <button
+          onClick={() => setEditing(true)}
+          className="rounded-lg p-1.5 transition-colors"
+          style={{ color: "var(--text-muted)" }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = "var(--accent)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = "var(--text-muted)";
+          }}
+          title="Edit item"
+        >
+          <Edit2 className="h-4 w-4" />
+        </button>
+        <button
+          onClick={async () => {
+            if (confirmDeleteItemId !== item._id) {
+              onConfirmDelete(item._id);
+              setTimeout(() => onConfirmDelete(null), 3000);
+              return;
+            }
+            try {
+              await removeItem({ itemId: item._id });
+              toast.success("Item deleted");
+            } catch {
+              toast.error("Failed to delete item");
+            }
+            onConfirmDelete(null);
+          }}
+          className="rounded-lg px-1.5 py-0.5 text-xs font-medium transition-colors"
+          style={
+            confirmDeleteItemId === item._id
+              ? { background: "var(--danger)", color: "#fff" }
+              : { color: "var(--text-muted)" }
+          }
+        >
+          {confirmDeleteItemId === item._id ? (
+            "Confirm?"
+          ) : (
+            <Trash2 className="h-4 w-4" />
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Main page ─────────────────────────────────────────────────
+
 export default function MenuPage() {
-  const restaurant = useQuery(api.restaurants.get, {});
+  const restaurant = useRestaurant();
   const menus = useQuery(
     api.menus.listMenus,
     restaurant ? { restaurantId: restaurant._id } : "skip"
@@ -35,7 +389,9 @@ export default function MenuPage() {
       toast.success("Menu created");
       setNewMenuName("");
       setShowAddMenu(false);
-    } catch { toast.error("Failed to create menu"); }
+    } catch {
+      toast.error("Failed to create menu");
+    }
   };
 
   return (
@@ -146,13 +502,29 @@ export default function MenuPage() {
             border: "1px solid var(--border-light)",
           }}
         >
-          <Edit2 className="mb-3 h-10 w-10" style={{ color: "var(--text-muted)", opacity: 0.4 }} />
-          <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Build your first menu</p>
-          <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>Create a menu to organize your dishes and prices.</p>
+          <Edit2
+            className="mb-3 h-10 w-10"
+            style={{ color: "var(--text-muted)", opacity: 0.4 }}
+          />
+          <p
+            className="text-sm font-medium"
+            style={{ color: "var(--text-primary)" }}
+          >
+            Build your first menu
+          </p>
+          <p
+            className="mt-1 text-sm"
+            style={{ color: "var(--text-muted)" }}
+          >
+            Create a menu to organize your dishes and prices.
+          </p>
           <button
             onClick={() => setShowAddMenu(true)}
             className="mt-4 flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-white transition-all hover:shadow-md"
-            style={{ background: "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)" }}
+            style={{
+              background:
+                "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)",
+            }}
           >
             <Plus className="h-4 w-4" /> Create Menu
           </button>
@@ -171,6 +543,8 @@ export default function MenuPage() {
     </div>
   );
 }
+
+// ── Menu section ──────────────────────────────────────────────
 
 function MenuSection({
   menu,
@@ -199,7 +573,9 @@ function MenuSection({
       toast.success("Category added");
       setNewCatName("");
       setShowAddCat(false);
-    } catch { toast.error("Failed to add category"); }
+    } catch {
+      toast.error("Failed to add category");
+    }
   };
 
   return (
@@ -271,13 +647,16 @@ function MenuSection({
               try {
                 await removeMenu({ menuId: menu._id });
                 toast.success("Menu deleted");
-              } catch { toast.error("Failed to delete menu"); }
+              } catch {
+                toast.error("Failed to delete menu");
+              }
               setConfirmDeleteMenu(false);
             }}
             className="rounded-xl px-2 py-1.5 text-xs font-medium transition-colors"
-            style={confirmDeleteMenu
-              ? { background: "var(--danger)", color: "#fff" }
-              : { color: "var(--text-muted)" }
+            style={
+              confirmDeleteMenu
+                ? { background: "var(--danger)", color: "#fff" }
+                : { color: "var(--text-muted)" }
             }
             onMouseEnter={(e) => {
               if (!confirmDeleteMenu) {
@@ -292,7 +671,11 @@ function MenuSection({
               }
             }}
           >
-            {confirmDeleteMenu ? "Confirm?" : <Trash2 className="h-4 w-4" />}
+            {confirmDeleteMenu ? (
+              "Confirm?"
+            ) : (
+              <Trash2 className="h-4 w-4" />
+            )}
           </button>
         </div>
       </div>
@@ -361,22 +744,25 @@ function MenuSection({
   );
 }
 
+// ── Category section ──────────────────────────────────────────
+
 function CategorySection({ category }: { category: any }) {
   const items = useQuery(api.menus.listItems, {
     categoryId: category._id,
   });
   const createItem = useMutation(api.menus.createItem);
-  const updateItem = useMutation(api.menus.updateItem);
-  const removeItem = useMutation(api.menus.removeItem);
   const removeCategory = useMutation(api.menus.removeCategory);
 
   const [showAddItem, setShowAddItem] = useState(false);
   const [confirmDeleteCat, setConfirmDeleteCat] = useState(false);
-  const [confirmDeleteItemId, setConfirmDeleteItemId] = useState<string | null>(null);
+  const [confirmDeleteItemId, setConfirmDeleteItemId] = useState<string | null>(
+    null
+  );
   const [newItem, setNewItem] = useState({
     name: "",
     price: "",
     description: "",
+    tags: "",
   });
 
   const handleAddItem = async () => {
@@ -387,11 +773,25 @@ function CategorySection({ category }: { category: any }) {
         name: newItem.name,
         price: parseFloat(newItem.price),
         description: newItem.description || undefined,
+        tags: newItem.tags
+          ? newItem.tags
+              .split(",")
+              .map((t) => t.trim())
+              .filter(Boolean)
+          : undefined,
       });
       toast.success("Item added");
-      setNewItem({ name: "", price: "", description: "" });
+      setNewItem({ name: "", price: "", description: "", tags: "" });
       setShowAddItem(false);
-    } catch { toast.error("Failed to add item"); }
+    } catch {
+      toast.error("Failed to add item");
+    }
+  };
+
+  const inputStyle = {
+    background: "var(--surface)",
+    border: "1px solid var(--border-light)",
+    color: "var(--text-primary)",
   };
 
   return (
@@ -427,16 +827,23 @@ function CategorySection({ category }: { category: any }) {
               try {
                 await removeCategory({ categoryId: category._id });
                 toast.success("Category deleted");
-              } catch { toast.error("Failed to delete"); }
+              } catch {
+                toast.error("Failed to delete");
+              }
               setConfirmDeleteCat(false);
             }}
             className="rounded-lg px-1.5 py-0.5 text-xs font-medium transition-colors"
-            style={confirmDeleteCat
-              ? { background: "var(--danger)", color: "#fff" }
-              : { color: "var(--text-muted)" }
+            style={
+              confirmDeleteCat
+                ? { background: "var(--danger)", color: "#fff" }
+                : { color: "var(--text-muted)" }
             }
           >
-            {confirmDeleteCat ? "Confirm?" : <Trash2 className="h-4 w-4" />}
+            {confirmDeleteCat ? (
+              "Confirm?"
+            ) : (
+              <Trash2 className="h-4 w-4" />
+            )}
           </button>
         </div>
       </div>
@@ -444,7 +851,7 @@ function CategorySection({ category }: { category: any }) {
       <div>
         {showAddItem && (
           <div
-            className="flex items-center gap-3 p-3"
+            className="flex flex-col gap-2 p-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3"
             style={{ background: "rgba(200,150,62,0.08)" }}
           >
             <input
@@ -455,12 +862,18 @@ function CategorySection({ category }: { category: any }) {
               }
               placeholder="Item name"
               className="flex-1 rounded-lg px-2 py-1 text-sm outline-none"
-              style={{
-                background: "var(--surface)",
-                border: "1px solid var(--border-light)",
-                color: "var(--text-primary)",
-              }}
+              style={inputStyle}
               autoFocus
+            />
+            <input
+              type="text"
+              value={newItem.description}
+              onChange={(e) =>
+                setNewItem({ ...newItem, description: e.target.value })
+              }
+              placeholder="Description (optional)"
+              className="flex-1 rounded-lg px-2 py-1 text-sm outline-none"
+              style={inputStyle}
             />
             <input
               type="number"
@@ -469,101 +882,57 @@ function CategorySection({ category }: { category: any }) {
                 setNewItem({ ...newItem, price: e.target.value })
               }
               placeholder="Price"
-              className="w-24 rounded-lg px-2 py-1 text-sm outline-none"
-              style={{
-                background: "var(--surface)",
-                border: "1px solid var(--border-light)",
-                color: "var(--text-primary)",
-              }}
+              className="w-full rounded-lg px-2 py-1 text-sm outline-none sm:w-24"
+              style={inputStyle}
               step="0.01"
             />
-            <button
-              onClick={handleAddItem}
-              className="rounded-lg px-3 py-1 text-sm font-medium text-white"
-              style={{
-                background:
-                  "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)",
-              }}
-            >
-              Add
-            </button>
-            <button
-              onClick={() => setShowAddItem(false)}
-              className="text-sm"
-              style={{ color: "var(--text-muted)" }}
-            >
-              Cancel
-            </button>
+            <input
+              type="text"
+              value={newItem.tags}
+              onChange={(e) =>
+                setNewItem({ ...newItem, tags: e.target.value })
+              }
+              placeholder="Tags (comma-separated, e.g. spicy, vegan)"
+              className="flex-1 rounded-lg px-2 py-1 text-sm outline-none"
+              style={inputStyle}
+            />
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleAddItem}
+                className="rounded-lg px-3 py-1 text-sm font-medium text-white"
+                style={{
+                  background:
+                    "linear-gradient(135deg, var(--accent) 0%, #a07028 100%)",
+                }}
+              >
+                Add
+              </button>
+              <button
+                onClick={() => setShowAddItem(false)}
+                className="text-sm"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         )}
 
         {items?.map((item: any, index: number) => (
           <div
             key={item._id}
-            className="flex items-center justify-between px-4 py-3"
             style={{
-              borderTop: index > 0 || showAddItem ? "1px solid var(--border-light)" : undefined,
+              borderTop:
+                index > 0 || showAddItem
+                  ? "1px solid var(--border-light)"
+                  : undefined,
             }}
           >
-            <div className="flex-1">
-              <p
-                className="font-medium text-sm"
-                style={{ color: "var(--text-primary)" }}
-              >
-                {item.name}
-              </p>
-              {item.description && (
-                <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                  {item.description}
-                </p>
-              )}
-            </div>
-            <div className="flex items-center gap-3">
-              <span
-                className="font-medium text-sm"
-                style={{ color: "var(--accent)" }}
-              >
-                ${item.price.toFixed(2)}
-              </span>
-              <label
-                className="flex items-center gap-1 text-xs"
-                style={{ color: "var(--text-muted)" }}
-              >
-                <input
-                  type="checkbox"
-                  checked={item.isAvailable}
-                  onChange={(e) =>
-                    updateItem({
-                      itemId: item._id,
-                      isAvailable: e.target.checked,
-                    })
-                  }
-                  className="accent-[#c8963e]"
-                />
-                Available
-              </label>
-              <button
-                onClick={async () => {
-                  if (confirmDeleteItemId !== item._id) {
-                    setConfirmDeleteItemId(item._id);
-                    setTimeout(() => setConfirmDeleteItemId(null), 3000);
-                    return;
-                  }
-                  try {
-                    await removeItem({ itemId: item._id });
-                    toast.success("Item deleted");
-                  } catch { toast.error("Failed to delete item"); }
-                  setConfirmDeleteItemId(null);
-                }}
-                className="rounded-lg px-1.5 py-0.5 text-xs font-medium transition-colors"
-                style={confirmDeleteItemId === item._id
-                  ? { background: "var(--danger)", color: "#fff" }
-                  : { color: "var(--text-muted)" }
-                }
-              >
-                {confirmDeleteItemId === item._id ? "Confirm?" : <Trash2 className="h-4 w-4" />}
-              </button>
-            </div>
+            <EditableItem
+              item={item}
+              confirmDeleteItemId={confirmDeleteItemId}
+              onConfirmDelete={setConfirmDeleteItemId}
+            />
           </div>
         ))}
 
