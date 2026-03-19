@@ -9,6 +9,9 @@
  */
 
 import type * as activities from "../activities.js";
+import type * as aiChatbot from "../aiChatbot.js";
+import type * as aiHelpers from "../aiHelpers.js";
+import type * as analytics from "../analytics.js";
 import type * as clerkWebhooks from "../clerkWebhooks.js";
 import type * as conversations from "../conversations.js";
 import type * as dockets from "../dockets.js";
@@ -19,7 +22,9 @@ import type * as leads from "../leads.js";
 import type * as lib_permissions from "../lib/permissions.js";
 import type * as menus from "../menus.js";
 import type * as messages from "../messages.js";
+import type * as publicOrders from "../publicOrders.js";
 import type * as restaurants from "../restaurants.js";
+import type * as storage from "../storage.js";
 import type * as tags from "../tags.js";
 import type * as tasks from "../tasks.js";
 import type * as teamMembers from "../teamMembers.js";
@@ -34,6 +39,9 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   activities: typeof activities;
+  aiChatbot: typeof aiChatbot;
+  aiHelpers: typeof aiHelpers;
+  analytics: typeof analytics;
   clerkWebhooks: typeof clerkWebhooks;
   conversations: typeof conversations;
   dockets: typeof dockets;
@@ -44,7 +52,9 @@ declare const fullApi: ApiFromModules<{
   "lib/permissions": typeof lib_permissions;
   menus: typeof menus;
   messages: typeof messages;
+  publicOrders: typeof publicOrders;
   restaurants: typeof restaurants;
+  storage: typeof storage;
   tags: typeof tags;
   tasks: typeof tasks;
   teamMembers: typeof teamMembers;
