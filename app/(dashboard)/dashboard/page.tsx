@@ -2,6 +2,7 @@
 
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useRestaurant } from "@/hooks/use-restaurant";
 import {
   Users,
   MessageSquare,
@@ -12,9 +13,23 @@ import {
   TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 export default function DashboardPage() {
-  const restaurant = useQuery(api.restaurants.get, {});
+  const restaurant = useRestaurant();
   const stats = useQuery(
     api.restaurants.getDashboardStats,
     restaurant ? { restaurantId: restaurant._id } : "skip"
@@ -22,6 +37,22 @@ export default function DashboardPage() {
   const recentLeads = useQuery(
     api.leads.getRecent,
     restaurant ? { restaurantId: restaurant._id, limit: 5 } : "skip"
+  );
+  const revenue = useQuery(
+    api.analytics.revenueOverTime,
+    restaurant ? { restaurantId: restaurant._id } : "skip"
+  );
+  const funnel = useQuery(
+    api.analytics.conversionFunnel,
+    restaurant ? { restaurantId: restaurant._id } : "skip"
+  );
+  const popularItemsData = useQuery(
+    api.analytics.popularItems,
+    restaurant ? { restaurantId: restaurant._id } : "skip"
+  );
+  const sources = useQuery(
+    api.analytics.sourceDistribution,
+    restaurant ? { restaurantId: restaurant._id } : "skip"
   );
 
   if (!restaurant || stats === undefined) {
@@ -114,7 +145,7 @@ export default function DashboardPage() {
                   {card.label}
                 </p>
                 <p
-                  className="mt-3 text-4xl font-light tracking-tight"
+                  className="mt-3 text-3xl md:text-4xl font-light tracking-tight"
                   style={{
                     fontFamily: "var(--font-display)",
                     color: "var(--text-primary)",
@@ -143,6 +174,154 @@ export default function DashboardPage() {
           </Link>
         ))}
       </div>
+
+      {/* Analytics Charts */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Revenue Over Time */}
+        <div
+          className="animate-fade-up delay-300 rounded-2xl p-6"
+          style={{ background: "var(--surface)", border: "1px solid var(--border-light)" }}
+        >
+          <h2
+            className="mb-4 text-lg font-medium"
+            style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)" }}
+          >
+            Revenue (30 days)
+          </h2>
+          {revenue && revenue.length > 0 ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <AreaChart data={revenue}>
+                <defs>
+                  <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#c8963e" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#c8963e" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={(d: string) =>
+                    new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric" })
+                  }
+                  tick={{ fontSize: 11, fill: "var(--text-muted)" }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: "var(--text-muted)" }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: "var(--surface)",
+                    border: "1px solid var(--border-light)",
+                    borderRadius: "8px",
+                    fontSize: "12px",
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#c8963e"
+                  fill="url(#revenueGrad)"
+                  strokeWidth={2}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="py-12 text-center text-sm" style={{ color: "var(--text-muted)" }}>
+              No revenue data yet
+            </p>
+          )}
+        </div>
+
+        {/* Source Distribution */}
+        <div
+          className="animate-fade-up delay-400 rounded-2xl p-6"
+          style={{ background: "var(--surface)", border: "1px solid var(--border-light)" }}
+        >
+          <h2
+            className="mb-4 text-lg font-medium"
+            style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)" }}
+          >
+            Lead Sources
+          </h2>
+          {sources && sources.length > 0 ? (
+            <div className="flex items-center gap-6">
+              <ResponsiveContainer width={160} height={160}>
+                <PieChart>
+                  <Pie
+                    data={sources}
+                    dataKey="count"
+                    nameKey="source"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={45}
+                    outerRadius={70}
+                    paddingAngle={4}
+                  >
+                    {sources.map((entry: any, i: number) => (
+                      <Cell key={i} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="space-y-2">
+                {sources.map((s: any) => (
+                  <div key={s.source} className="flex items-center gap-2 text-sm">
+                    <div className="h-3 w-3 rounded-full" style={{ background: s.color }} />
+                    <span style={{ color: "var(--text-secondary)" }}>{s.source}</span>
+                    <span className="font-medium" style={{ color: "var(--text-primary)" }}>
+                      {s.count}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="py-12 text-center text-sm" style={{ color: "var(--text-muted)" }}>
+              No lead data yet
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Popular Items */}
+      {popularItemsData && popularItemsData.length > 0 && (
+        <div
+          className="animate-fade-up delay-500 rounded-2xl p-6"
+          style={{ background: "var(--surface)", border: "1px solid var(--border-light)" }}
+        >
+          <h2
+            className="mb-4 text-lg font-medium"
+            style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)" }}
+          >
+            Popular Items
+          </h2>
+          <ResponsiveContainer width="100%" height={Math.max(200, popularItemsData.length * 36)}>
+            <BarChart data={popularItemsData} layout="vertical" margin={{ left: 80 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" horizontal={false} />
+              <XAxis type="number" tick={{ fontSize: 11, fill: "var(--text-muted)" }} />
+              <YAxis
+                type="category"
+                dataKey="name"
+                tick={{ fontSize: 12, fill: "var(--text-secondary)" }}
+                width={80}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: "var(--surface)",
+                  border: "1px solid var(--border-light)",
+                  borderRadius: "8px",
+                  fontSize: "12px",
+                }}
+              />
+              <Bar dataKey="quantity" fill="#c8963e" radius={[0, 4, 4, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         {/* Pipeline Overview — wider */}
