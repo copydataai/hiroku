@@ -10,8 +10,10 @@
 		"convex": "convex"
 	},
 	"dependencies": {
+		"@ai-sdk/anthropic": "^3.0.58",
 		"@base-ui/react": "^1.3.0",
 		"@clerk/nextjs": "^7.0.4",
+		"ai": "^6.0.116",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"convex": "^1.33.0",
