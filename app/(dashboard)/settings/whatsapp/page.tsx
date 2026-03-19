@@ -1,18 +1,20 @@
 "use client";
 
-import { useQuery, useMutation } from "convex/react";
+import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useRestaurant } from "@/hooks/use-restaurant";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { MessageSquare } from "lucide-react";
 
 export default function WhatsAppSettingsPage() {
-  const restaurant = useQuery(api.restaurants.get, {});
+  const restaurant = useRestaurant();
   const updateRestaurant = useMutation(api.restaurants.update);
 
   const [phoneNumberId, setPhoneNumberId] = useState("");
   const [accessToken, setAccessToken] = useState("");
   const [verifyToken, setVerifyToken] = useState("");
+  const [aiAutoRespond, setAiAutoRespond] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -20,6 +22,7 @@ export default function WhatsAppSettingsPage() {
       setPhoneNumberId(restaurant.whatsappPhoneNumberId ?? "");
       setAccessToken(restaurant.whatsappAccessToken ?? "");
       setVerifyToken(restaurant.whatsappVerifyToken ?? "");
+      setAiAutoRespond(restaurant.aiAutoRespond ?? false);
     }
   }, [restaurant]);
 
@@ -34,6 +37,7 @@ export default function WhatsAppSettingsPage() {
         whatsappPhoneNumberId: phoneNumberId || undefined,
         whatsappAccessToken: accessToken || undefined,
         whatsappVerifyToken: verifyToken || undefined,
+        aiAutoRespond,
       });
       toast.success("WhatsApp settings saved");
     } catch {
@@ -192,6 +196,46 @@ export default function WhatsAppSettingsPage() {
             <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
               Set the same token in your Meta webhook configuration.
             </p>
+          </div>
+
+          {/* AI Auto-Respond Toggle */}
+          <div
+            className="flex items-center justify-between rounded-xl p-4"
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border-light)",
+            }}
+          >
+            <div>
+              <label
+                className="text-sm font-medium"
+                style={{ color: "var(--text-primary)" }}
+              >
+                AI Auto-Respond
+              </label>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                Automatically reply to customer messages using AI
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setAiAutoRespond(!aiAutoRespond)}
+              className="relative h-6 w-11 rounded-full transition-colors"
+              style={{
+                background: aiAutoRespond
+                  ? "var(--accent)"
+                  : "var(--border-light)",
+              }}
+            >
+              <span
+                className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform"
+                style={{
+                  transform: aiAutoRespond
+                    ? "translateX(20px)"
+                    : "translateX(0)",
+                }}
+              />
+            </button>
           </div>
 
           <div className="flex items-center gap-3 pt-2">
