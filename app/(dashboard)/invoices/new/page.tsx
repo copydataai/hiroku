@@ -3,6 +3,7 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import { useRestaurant } from "@/hooks/use-restaurant";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, Trash2, ArrowLeft } from "lucide-react";
@@ -22,7 +23,7 @@ export default function NewInvoicePage() {
   const searchParams = useSearchParams();
   const preselectedLeadId = searchParams.get("leadId");
 
-  const restaurant = useQuery(api.restaurants.get, {});
+  const restaurant = useRestaurant();
   const leads = useQuery(
     api.leads.list,
     restaurant ? { restaurantId: restaurant._id } : "skip"

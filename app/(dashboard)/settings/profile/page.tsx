@@ -1,12 +1,13 @@
 "use client";
 
-import { useQuery, useMutation } from "convex/react";
+import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useRestaurant } from "@/hooks/use-restaurant";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 export default function ProfileSettingsPage() {
-  const restaurant = useQuery(api.restaurants.get, {});
+  const restaurant = useRestaurant();
   const updateRestaurant = useMutation(api.restaurants.update);
 
   const [name, setName] = useState("");

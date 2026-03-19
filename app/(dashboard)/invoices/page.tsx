@@ -2,12 +2,13 @@
 
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useRestaurant } from "@/hooks/use-restaurant";
 import { useState } from "react";
 import Link from "next/link";
 import { Plus, FileText } from "lucide-react";
 
 export default function InvoicesPage() {
-  const restaurant = useQuery(api.restaurants.get, {});
+  const restaurant = useRestaurant();
   const [statusFilter, setStatusFilter] = useState<string>("");
 
   const invoices = useQuery(
@@ -94,13 +95,13 @@ export default function InvoicesPage() {
 
       {/* Table */}
       <div
-        className="overflow-hidden rounded-2xl"
+        className="overflow-x-auto rounded-2xl"
         style={{
           background: "var(--surface)",
           border: "1px solid var(--border-light)",
         }}
       >
-        <table className="w-full text-left text-sm">
+        <table className="w-full min-w-[600px] text-left text-sm">
           <thead>
             <tr
               style={{

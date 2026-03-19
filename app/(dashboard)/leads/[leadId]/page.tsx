@@ -3,6 +3,7 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import { useRestaurant } from "@/hooks/use-restaurant";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
@@ -28,7 +29,7 @@ export default function LeadDetailPage() {
   const lead = useQuery(api.leads.get, {
     leadId: leadId as Id<"leads">,
   });
-  const restaurant = useQuery(api.restaurants.get, {});
+  const restaurant = useRestaurant();
   const activities = useQuery(api.activities.listByLead, {
     leadId: leadId as Id<"leads">,
   });

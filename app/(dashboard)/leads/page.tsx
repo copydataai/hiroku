@@ -2,13 +2,14 @@
 
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useRestaurant } from "@/hooks/use-restaurant";
 import { useState } from "react";
 import Link from "next/link";
 import { Plus, Search, Filter, Users } from "lucide-react";
 import { toast } from "sonner";
 
 export default function LeadsPage() {
-  const restaurant = useQuery(api.restaurants.get, {});
+  const restaurant = useRestaurant();
   const [stage, setStage] = useState<string>("");
   const [source, setSource] = useState<string>("");
   const [priority, setPriority] = useState<string>("");
@@ -115,10 +116,10 @@ export default function LeadsPage() {
 
       {/* Leads Table */}
       <div
-        className="overflow-hidden rounded-2xl"
+        className="overflow-x-auto rounded-2xl"
         style={{ background: "var(--surface)", border: "1px solid var(--border-light)" }}
       >
-        <table className="w-full text-left text-sm">
+        <table className="w-full min-w-[600px] text-left text-sm">
           <thead>
             <tr
               style={{ background: "var(--surface-warm)" }}

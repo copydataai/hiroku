@@ -3,6 +3,7 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import { useRestaurant } from "@/hooks/use-restaurant";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight, Printer } from "lucide-react";
@@ -18,7 +19,7 @@ export default function InvoiceDetailPage() {
   const items = useQuery(api.invoiceItems.listByInvoice, {
     invoiceId: invoiceId as Id<"invoices">,
   });
-  const restaurant = useQuery(api.restaurants.get, {});
+  const restaurant = useRestaurant();
   const updateStatus = useMutation(api.invoices.updateStatus);
   const createDocket = useMutation(api.dockets.create);
 

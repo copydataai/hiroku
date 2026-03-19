@@ -2,12 +2,13 @@
 
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useRestaurant } from "@/hooks/use-restaurant";
 import { useState } from "react";
 import { Plus, CheckSquare } from "lucide-react";
 import { toast } from "sonner";
 
 export default function TasksPage() {
-  const restaurant = useQuery(api.restaurants.get, {});
+  const restaurant = useRestaurant();
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [showCreate, setShowCreate] = useState(false);
 
