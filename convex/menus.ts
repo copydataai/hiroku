@@ -324,6 +324,7 @@ export const getPublicMenu = query({
         name: restaurant.name,
         description: restaurant.description,
         currency: restaurant.currency,
+        phone: restaurant.phone,
       },
       menus: result.sort((a, b) => a.sortOrder - b.sortOrder),
     };

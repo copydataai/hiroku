@@ -3,7 +3,7 @@
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useParams } from "next/navigation";
-import { UtensilsCrossed } from "lucide-react";
+import { UtensilsCrossed, MessageCircle } from "lucide-react";
 
 export default function PublicMenuPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -173,7 +173,7 @@ export default function PublicMenuPage() {
         </header>
 
         {/* Menu content */}
-        <main className="mx-auto max-w-3xl px-6 py-12">
+        <main className="mx-auto max-w-3xl px-6 py-12 pb-24">
           {menus.length === 0 ? (
             <div
               className="animate-fade-up rounded-2xl py-16 text-center"
@@ -288,7 +288,7 @@ export default function PublicMenuPage() {
                                       "transparent";
                                   }}
                                 >
-                                  <div className="flex-1 pr-6">
+                                  <div className="flex-1 pr-4">
                                     <h4
                                       className="text-base"
                                       style={{
@@ -330,17 +330,19 @@ export default function PublicMenuPage() {
                                       </div>
                                     )}
                                   </div>
-                                  <span
-                                    className="shrink-0 text-lg"
-                                    style={{
-                                      color: "var(--accent)",
-                                      fontWeight: 600,
-                                      fontFamily: "var(--font-body)",
-                                    }}
-                                  >
-                                    {currencySymbol}
-                                    {item.price.toFixed(2)}
-                                  </span>
+                                  <div className="flex shrink-0 items-center">
+                                    <span
+                                      className="text-lg"
+                                      style={{
+                                        color: "var(--accent)",
+                                        fontWeight: 600,
+                                        fontFamily: "var(--font-body)",
+                                      }}
+                                    >
+                                      {currencySymbol}
+                                      {item.price.toFixed(2)}
+                                    </span>
+                                  </div>
                                 </div>
                               )
                             )}
@@ -366,7 +368,7 @@ export default function PublicMenuPage() {
 
         {/* Footer */}
         <footer
-          className="py-10 text-center"
+          className="py-10 text-center pb-24"
           style={{
             borderTop: "1px solid rgba(255,255,255,0.06)",
           }}
@@ -397,6 +399,23 @@ export default function PublicMenuPage() {
           </p>
         </footer>
       </div>
+
+      {/* WhatsApp CTA */}
+      {restaurant.phone && (
+        <a
+          href={`https://wa.me/${restaurant.phone.replace(/\D/g, "")}?text=${encodeURIComponent("Hi! I'd like to place an order 🍽️")}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center gap-3 py-4 text-white font-medium transition-all md:bottom-6 md:left-auto md:right-6 md:rounded-full md:px-8 md:py-3"
+          style={{
+            background: "#25D366",
+            boxShadow: "0 4px 20px rgba(37,211,102,0.3)",
+          }}
+        >
+          <MessageCircle className="h-5 w-5" />
+          Order on WhatsApp
+        </a>
+      )}
     </div>
   );
 }
